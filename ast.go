@@ -34,18 +34,18 @@ func (StringLiteral) ExpressionMarker() {}
 
 // Compound literals
 
-type sliceLiteral struct {
+type SliceLiteral struct {
 	Value []Expression
 }
 
-func (sliceLiteral) ExpressionMarker() {}
+func (SliceLiteral) ExpressionMarker() {}
 
-type functionLiteral struct {
+type FunctionLiteral struct {
 	Argument string
 	Image    Expression
 }
 
-func (functionLiteral) ExpressionMarker() {}
+func (FunctionLiteral) ExpressionMarker() {}
 
 // Runtime values TODO
 
