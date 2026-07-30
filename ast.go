@@ -74,7 +74,7 @@ type Call struct {
 	Function FunctionLiteral
 }
 
-func (Call) ExpresionMaker() {}
+func (Call) ExpressionMaker() {}
 
 type Conditional struct {
 	Check Expression
