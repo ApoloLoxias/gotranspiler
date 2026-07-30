@@ -52,3 +52,34 @@ func (FunctionLiteral) ExpressionMarker() {}
 type Value interface {
 	ValueMarker()
 }
+
+// Others
+
+type Variable struct {
+	Name    string
+	Binding Expression
+}
+
+func (Variable) ExpressionMarker() {}
+
+type Block struct {
+	Let []Variable
+	In  Expression
+}
+
+func (Block) ExpressionMarker() {}
+
+type Call struct {
+	Argument Expression
+	Function FunctionLiteral
+}
+
+func (Call) ExpresionMaker() {}
+
+type Conditional struct {
+	Check Expression
+	Yes   Expression
+	No    Expression
+}
+
+func (Conditional) ExpressionMarker() {}
