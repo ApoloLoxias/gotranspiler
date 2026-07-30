@@ -1,9 +1,12 @@
 package main
 
 // AST nodes
+
 type Expression interface {
 	ExpressionMarker()
 }
+
+// Primitive literals
 
 type IntLiteral struct {
 	Value int64
@@ -29,7 +32,23 @@ type StringLiteral struct {
 
 func (StringLiteral) ExpressionMarker() {}
 
+// Compound literals
+
+type sliceLiteral struct {
+	Value []Expression
+}
+
+func (sliceLiteral) ExpressionMarker() {}
+
+type functionLiteral struct {
+	Argument string
+	Image    Expression
+}
+
+func (functionLiteral) ExpressionMarker() {}
+
 // Runtime values TODO
+
 type Value interface {
 	ValueMarker()
 }
