@@ -71,7 +71,7 @@ func (Block) ExpressionMarker() {}
 
 type Call struct {
 	Argument Expression
-	Function FunctionLiteral
+	Function Expression
 }
 
 func (Call) ExpressionMaker() {}
