@@ -83,3 +83,25 @@ type Conditional struct {
 }
 
 func (Conditional) ExpressionMarker() {}
+
+//Builtins TODO
+
+type Builtin string
+
+func (Builtin) ExpressionMarker() {}
+
+const (
+	ADD  Builtin = "+"
+	SUB  Builtin = "-"
+	DIV  Builtin = "/"
+	MOD  Builtin = "%"
+	EQ   Builtin = "=="
+	LT   Builtin = "<"
+	LOE  Builtin = "<="
+	GT   Builtin = ">"
+	GOE  Builtin = ">="
+	DIFF Builtin = "!="
+	NOT  Builtin = "!"
+	OR   Builtin = "||"
+	AND  Builtin = "&&"
+)
