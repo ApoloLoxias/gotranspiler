@@ -44,3 +44,8 @@
 ## Condition
 - Evaluates condition
 - Evaluates to Yes or No branch accordingly
+
+## Block
+- Creates a new lexical environment
+- Evaluates bindings (in order)
+- Evaluates to the value of the final expression in the enviornment
