@@ -176,3 +176,100 @@ var uMultivarEvaol3 = Call{
 	},
 }
 var uMultivarEvalDone = 1 + 2
+
+// Declaring/scoping funcitons
+
+// f = (x) -> x+2
+// f(1)
+
+var NamedFunc = Block{
+	Bind: FunctionLiteral{
+		Argument: Variable{"x"},
+		Image: IntLiteral{Variable{"x"}+IntLiteral{2}},
+	}, 
+	To: Variable{"f"},
+	Assess: Call{
+		Argument: IntLiteral{1},
+		Function: Variable{"f"},
+	},
+}
+var NamedFuncEval1 = Call{
+		Argument: IntLiteral{1},
+		Function: FunctionLiteral{
+			Argument: Variable{"x"},
+			Image: IntLiteral{Variable{"x"}+IntLiteral{2}},
+		},
+	}
+var NamedFuncEval2 = Call{
+	Block{
+		Bind: IntLiteral{1},
+		To: Variable{"x"},
+		Assess: IntLiteral{Variable{"x"}+IntLiteral{2}},
+	},
+}
+var NamedFuncEvalDone = IntLiteral{1+2} // If a call has a FunctioNliteral as its Function, it evaluates to a block with Bind = Call.Argument, To = Call.Function.Argument and Assess = Call.Function.Image
+
+
+// Composing functions
+
+// f = (x) -> x + 1
+// g = (x) --> x - 2
+// (f(g))(4)
+
+var NestedFun = Block{ // Using simplified, non-cannonical, FunctionLiteral notation for simplicity
+	Bind: FunctionLiteral{"x" -> "x+1"},
+	To: Variable{"f"},
+	Assess: Block{
+		Bind: FunctionLiteral{"x" -> "x-2"},
+		To: Variable{"g"},
+		Assess Call{
+			Argument: IntLiteral{4},
+			Function: Call{
+				Argument: Variable("g"),
+				Function: Varaible{"f"},
+			},
+		},
+	},
+}
+var NestedFunEval1 = Block{
+	Bind: FunctionLiteral{"x" -> "x+1"},
+	To: Variable{"f"},
+	Assess: Call{
+		Argument: IntLiteral{4},
+		Function: Call{
+			Argument: FunctionLiteral{"x" -> "x-2"},
+			Function: Varaible{"f"},
+		},
+	},
+}
+var NestedFunEval2 = Call{
+	Argument:IntLiteral{4},
+	Function: Call{
+		Argument: FunctionLiteral{"x" -> "x-2"},
+		Function: FunctionLiteral{"x" -> "x+1"},//=FunctionLiteral{Argument:Variable{"x"}, Image: IntLiteral{Variable{"x"}+IntLiteral{1^}}}
+	}
+}
+var NestedFunEval3 = Call{
+	Argument: IntLiteral{4},
+	Function: Block{
+		Bind: FunctionLiteral{"x" -> "x-2"},
+		To: Variable{"x"},
+		Function: IntLiteral{Variable{"x"}+IntLiteral{1}}
+	},
+}
+var NestedFunEval4 = Call{
+	Argument: IntLiteral{4},
+	Function: IntLiteral{FunctionLiteral{"x" -> "x-2"}+IntLiteral{1}},
+}
+var NestedFunEval4 = Call{ //expanding inline...
+	Argument: IntLiteral{4},
+	Function: IntLiteral{FunctionLiteral{Argument: Variable{"x"}, Image: IntLiteral{Variable{"x"}-IntLiteral{2}}+IntLiteral{1}}},
+}
+// A call whose function is an expression with functionLiterals with a variable not declared in its environment passess its argument to that variable in a block
+var NestedFunEval5 = Block{
+	Bind: IntLiteral{4},
+	To: Variable{x},
+	Assess:  IntLiteral{FunctionLiteral{Argument: Variable{"x"}, Image: IntLiteral{Variable{"x"}-IntLiteral{2}}+IntLiteral{1}}},
+}
+var NestedFunEval6 = IntLiteral{{FunctionLiteral{Argument: IntLiteral{4}, Image: IntLiteral{IntLiteral{4}-IntLiteral{2}}+IntLiteral{1}}},
+var NestedFunEval = IntLiteral{IntLiteral{IntLiteral{4}-IntLiteral{2}}+IntLiteral{1} = 4-2+1 = 3
