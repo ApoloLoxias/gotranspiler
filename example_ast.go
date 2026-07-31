@@ -100,7 +100,8 @@ var PrecEvalDone = 6
 // x + 2
 
 var Var = Block{
-	Bind: []Binding{{Variable{"x"}, IntLiteral{1}}},
+	Bind: IntLiteral{1},
+	To:   Variable{"x"},
 	Assess: Call{
 		Argument: IntLiteral{2},
 		Function: Call{
@@ -134,45 +135,12 @@ var VarEvalDone = 3
 // y = 2
 // x + y
 
-var MultiVar = Block{
-	Bind: []Binding{{Variable{"x"}, IntLiteral{1}}, {Variable{"y"}, IntLiteral{2}}},
-	Assess: Call{
-		Argument: Variable{"y"},
-		Function: Call{
-			Argument: Variable{"x"},
-			Function: Variable{"+"},
-		},
-	},
-}
-var MultiVarEval = Call{
-	Argument: IntLiteral{2},
-	Function: Call{
-		Argument: IntLiteral{1},
-		Function: Variable{"+"},
-	},
-}
-var MultiVarEval2 = Call{
-	Argument: IntLiteral{2},
-	Function: Call{
-		Argument: IntLiteral{1},
-		Function: ADD,
-	},
-}
-var MultiVarEval3 = IntLiteral{1 + 2}
-
-//Alternative with sctrictly unary (no slice) block binding
-
-type Ublock struct {
-	Bind   Binding
-	Assess Expression
-}
-
-func (Ublock) ExpressionMarker() {}
-
-var uMultiVar = Ublock{
-	Bind: Binding{Variable{"x"}, IntLiteral{1}},
-	Assess: Ublock{
-		Bind: Binding{Variable{"y"}, IntLiteral{2}},
+var uMultiVar = Block{
+	Bind: IntLiteral{1},
+	To:   Variable{"x"},
+	Assess: Block{
+		Bind: IntLiteral{2},
+		To:   Variable{"y"},
 		Assess: Call{
 			Argument: Variable{"y"},
 			Function: Call{
@@ -182,8 +150,9 @@ var uMultiVar = Ublock{
 		},
 	},
 }
-var uMultiVarEval1 = Ublock{
-	Bind: Binding{Variable{"y"}, IntLiteral{2}},
+var uMultiVarEval1 = Block{
+	Bind: IntLiteral{2},
+	To:   Variable{"y"},
 	Assess: Call{
 		Argument: Variable{"y"},
 		Function: Call{

@@ -61,15 +61,9 @@ type Variable struct {
 
 func (Variable) ExpressionMarker() {}
 
-type Binding struct {
-	Variable Variable
-	Value    Expression
-}
-
-func (Binding) ExpressionMarker() {}
-
 type Block struct {
-	Bind   []Binding //of length n
+	Bind   Expression
+	To     Variable
 	Assess Expression
 }
 
