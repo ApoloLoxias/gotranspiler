@@ -100,9 +100,8 @@ var PrecEvalDone = 6
 // x + 2
 
 var Var = Block{
-	Let:  []Variable{{"x"}},
-	Bind: []Expression{IntLiteral{1}},
-	In: Call{
+	Bind: []Binding{{Variable{"x"}, IntLiteral{1}}},
+	Assess: Call{
 		Argument: IntLiteral{2},
 		Function: Call{
 			Argument: Variable{"x"},
@@ -110,51 +109,23 @@ var Var = Block{
 		},
 	},
 }
-var VarEval1 = Block{
-	Let:  []Variable{{"x"}},
-	Bind: []Expression{IntLiteral{1}},
-	In: Call{
-		Argument: IntLiteral{2},
-		Function: Call{
-			Argument: Variable{"x"},
-			Function: ADD,
-		},
-	},
-}
-var VarEval2 = Block{
-	Let:  []Variable{{"x"}},
-	Bind: []Expression{IntLiteral{1}},
-	In: Call{
-		Argument: IntLiteral{2},
-		Function: Builtin("Add'x'"),
-	},
-}
-var VarEval3 = Block{
-	Let:  []Variable{{"x"}},
-	Bind: []Expression{IntLiteral{1}},
-	In: Call{
-		Argument: IntLiteral{2},
-		Function: Builtin("Add'x'"),
-	},
-}
-var VarEval4 = Block{
-	Let:  []Variable{{"x"}},
-	Bind: []Expression{IntLiteral{1}},
-	In:   IntLiteral{'x' + 2},
-}
-var VarEval5 = IntLiteral{1 + 2}
-var VarEvalDone = 3
-
-var VarEvalAlt1 = Call{
+var VarEval1 = Call{
 	Argument: IntLiteral{2},
 	Function: Call{
 		Argument: IntLiteral{1},
-		Function: ADD,
+		Function: Variable{"+"}, // This one evaluates after "x" because we treat initial environment as being a block itself, so we are implicilty withing a Block{Bind: Builtins, Asses: everything}[
 	},
 }
-var VarEvalAlt2 = Call{
+var VarEval2 = Call{
 	Argument: IntLiteral{2},
-	Function: Builtin("ADD1"),
+	Function: Call{
+		Argument: IntLiteral{1},
+		Function: Add,
+	},
 }
-var VarEvalAlt3 = IntLiteral{1 + 2}
-var VarEvalAltDone = 3
+var VarEval3 = Call{
+	Argument: IntLiteral{2},
+	Function: Builtin("Add1"),
+}
+var VarEval4 = IntLiteral{1 + 2}
+var VarEvalDone = 3

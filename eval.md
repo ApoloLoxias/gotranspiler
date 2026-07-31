@@ -49,3 +49,6 @@
 - Creates a new lexical environment
 - Evaluates bindings (in order)
 - Evaluates to the value of the final expression in the enviornment
+- Wants special eval ordering:
+    - If Assess is a Block, evaluate Assess first
+    - If Assess is not a Block, evaluate Parent first
