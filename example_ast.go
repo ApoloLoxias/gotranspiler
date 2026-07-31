@@ -91,3 +91,70 @@ var PrecEval4 = Call{
 }
 var PrecEval5 = IntLiteral{1 + 6}
 var PrecEvalDone = 6
+
+/* ------------------ */
+
+// Variables, blocks, let/in bindings and lexical scoping
+
+// x = 1
+// x + 2
+
+var Var = Block{
+	Let:  []Variable{{"x"}},
+	Bind: []Expression{IntLiteral{1}},
+	In: Call{
+		Argument: IntLiteral{2},
+		Function: Call{
+			Argument: Variable{"x"},
+			Function: Variable{"+"},
+		},
+	},
+}
+var VarEval1 = Block{
+	Let:  []Variable{{"x"}},
+	Bind: []Expression{IntLiteral{1}},
+	In: Call{
+		Argument: IntLiteral{2},
+		Function: Call{
+			Argument: Variable{"x"},
+			Function: ADD,
+		},
+	},
+}
+var VarEval2 = Block{
+	Let:  []Variable{{"x"}},
+	Bind: []Expression{IntLiteral{1}},
+	In: Call{
+		Argument: IntLiteral{2},
+		Function: Builtin("Add'x'"),
+	},
+}
+var VarEval3 = Block{
+	Let:  []Variable{{"x"}},
+	Bind: []Expression{IntLiteral{1}},
+	In: Call{
+		Argument: IntLiteral{2},
+		Function: Builtin("Add'x'"),
+	},
+}
+var VarEval4 = Block{
+	Let:  []Variable{{"x"}},
+	Bind: []Expression{IntLiteral{1}},
+	In:   IntLiteral{'x' + 2},
+}
+var VarEval5 = IntLiteral{1 + 2}
+var VarEvalDone = 3
+
+var VarEvalAlt1 = Call{
+	Argument: IntLiteral{2},
+	Function: Call{
+		Argument: IntLiteral{1},
+		Function: ADD,
+	},
+}
+var VarEvalAlt2 = Call{
+	Argument: IntLiteral{2},
+	Function: Builtin("ADD1"),
+}
+var VarEvalAlt3 = IntLiteral{1 + 2}
+var VarEvalAltDone = 3

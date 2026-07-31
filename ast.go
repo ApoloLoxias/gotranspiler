@@ -56,15 +56,15 @@ type Value interface {
 // Others
 
 type Variable struct {
-	Name    string
-	Binding Expression
+	Name string
 }
 
 func (Variable) ExpressionMarker() {}
 
 type Block struct {
-	Let []Variable
-	In  Expression
+	Let  []Variable   //of length n
+	Bind []Expression // of length n
+	In   Expression
 }
 
 func (Block) ExpressionMarker() {}
