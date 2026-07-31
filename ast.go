@@ -74,7 +74,7 @@ type Call struct {
 	Function Expression
 }
 
-func (Call) ExpressionMaker() {}
+func (Call) ExpressionMarker() {}
 
 type Conditional struct {
 	Check Expression
@@ -93,6 +93,7 @@ func (Builtin) ExpressionMarker() {}
 const (
 	ADD  Builtin = "+"
 	SUB  Builtin = "-"
+	MUL  Builtin = "*"
 	DIV  Builtin = "/"
 	MOD  Builtin = "%"
 	EQ   Builtin = "=="
