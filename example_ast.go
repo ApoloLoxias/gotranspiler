@@ -180,11 +180,11 @@ var uMultivarEvalDone = 1 + 2
 // Declaring/scoping funcitons
 
 // f:x -> x
-//f(1)
+// f(1)
 var NamedFunc = Block{
 	Bind: Call{
 		Argument: ARG{ID: 1}, //ARG us an AST element for literal functions, it holds an unique ID, perhaps a hash or some other unique string so we can model ARG as a Variable{Name: ID}
-		Function: IntLiteral{ARG{ID: 1}}
+		Function: IntLiteral{ARG{ID: 1}},
 	},
 	To: Variable{"f"},
 	Assess: Call{
@@ -199,24 +199,26 @@ var NamedFuncEval1 = Call{
 		Function: IntLiteral{ARG{ID: 1}},
 	},
 }
+
 // A Call node whose Function child is a Call whose Argument child is an ARG resolves as a block that binds the parents argument value to the childs ARG variable
 var NamedFuncEval2 = Block{
 	Bind: IntLiteral{1},
-	To: ARG{ID: 1},
+	To:   ARG{ID: 1},
 	Assess: Call{
 		Argument: ARG{ID: 1},
 		Function: IntLiteral{ARG{ID: 1}},
 	},
+}
 var NamedFuncEval3 = Call{
-		Argument: IntLiteral{1}
-		Function: IntLiteral{IntLiteral{1}}
-	}
-	
+	Argument: IntLiteral{1},
+	Function: IntLiteral{IntLiteral{1}},
+}
+
 // f = (x) -> x+2
 // f(1)
 var Named = Block{
 	Bind: Block{ //x -> (Add(x))(2)
-		Bind: ,
+		Bind: ARG{ID: 1},
 		To:   Variable{"x"},
 		Assess: Call{
 			Argument: IntLiteral{2},
@@ -232,3 +234,53 @@ var Named = Block{
 		Function: Variable{"f"},
 	},
 }
+var NamedEval1 = Call{
+	Argument: IntLiteral{1},
+	Function: Block{
+		Bind: ARG{ID: 1},
+		To:   Variable{"x"},
+		Assess: Call{
+			Argument: IntLiteral{2},
+			Function: Call{
+				Argument: Variable{"x"},
+				Function: Variable{"+"},
+			},
+		},
+	},
+}
+var NamedEval2 = Call{
+	Argument: IntLiteral{1},
+	Function: Call{
+		Argument: IntLiteral{2},
+		Function: Call{
+			Argument: ARG{ID: 1},
+			Function: Variable{"+"},
+		},
+	},
+}
+var NamedEval3 = Call{
+	Argument: IntLiteral{1},
+	Function: Block{
+		Bind: IntLiteral{2},
+		To:   ARG{ID: 1},
+		Assess: Call{
+			Argument: ARG{ID: 1},
+			Function: Variable{"+"},
+		},
+	},
+}
+var NamedEval4 = Call{
+	Argument: IntLiteral{1},
+	Function: Call{
+		Argument: IntLiteral{2},
+		Function: Variable{"+"},
+	},
+}
+var NamedEval5 = Call{
+	Argument: IntLiteral{1},
+	Function: Call{
+		Argument: IntLiteral{2},
+		Function: ADD,
+	},
+}
+var NamedEvalDone = 1 + 2

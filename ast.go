@@ -41,7 +41,7 @@ type SliceLiteral struct {
 func (SliceLiteral) ExpressionMarker() {}
 
 type FunctionLiteral struct {
-	Argument string
+	Argument Variable
 	Image    Expression
 }
 
