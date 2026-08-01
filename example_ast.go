@@ -201,96 +201,54 @@ var NamedFuncEval1 = Call{
 }
 
 // shadowing
-// x = 1
-// x = x+1
-// x + 2 = 2 + 2 =4
-
+// x = 0
+// x = x + 1
+// x
 var Shadow = Block{
-	Bind: IntLiteral{1},
-	To:   Variable{"x"},
+	Bind: 0,
+	To: x,
 	Assess: Block{
 		Bind: Call{
-			Argument: IntLiteral{1},
+			Argument: 1,
 			Function: Call{
-				Argument: Variable{"x"},
-				Function: Variable{"+"},
-			},
+				Argument: x,
+				Function: +,
+			}
 		},
-		To: Variable{"x"},
-		Assess: Call{
-			Argument: IntLiteral{2},
-			Function: Call{
-				Argument: Variable{"x"},
-				Function: Variable{"+"},
-			},
-		},
+		To: x,
+		Assess: x,
 	},
 }
-var ShadowEval1 = Block{ //This eval is wronky/wrong
-	Bind: IntLiteral{1},
-	To:   Variable{"x"},
+var ShadowEval1 = Block{
+	Bind: 0,
+	To: x,
 	Assess: Call{
-		Argument: intLiteral{2},
+		Argument: 1,
 		Function: Call{
-			Argument: Call{
-				Argument: intLiteral{1},
-				Function: Call{
-					Argument: Variable{"x"},
-					Function: Variable{"+"},
-				},
-			},
-			Function: Variable{"+"},
+			Argument: x,
+			Function: +,
 		},
 	},
 }
 var ShadowEval2 = Call{
-	Argument: IntLiteral{2},
+	Argument: 1,
 	Function: Call{
-		Argument: Call{
-			Argument: IntLiteral{1},
-			Function: Call{
-				Argument: IntlLiteral{1},
-				Function: Variable{"+"},
-			},
-		},
-		Function: Variable{"+"},
+		Argument: 0,
+		Function: +,
 	},
 }
 var ShadowEval3 = Call{
-	Argument: IntLiteral{2},
+	Argument: 1,
 	Function: Call{
-		Argument: Call{
-			Argument: intLiteral{1},
-			Function: Call{
-				Argument: IntLitral{1},
-				Function: ADD,
-			},
-		},
+		Argument: 0,
 		Function: ADD,
 	},
 }
 var ShadowEval4 = Call{
-	Argument: IntLiteral{2},
-	Function: Call{
-		Argument: Call{
-			Argument: IntLiteral{1},
-			Function: ADD(1),
-		},
-		Function: ADD,
-	},
+	Argument: 1,
+	Function: ADD(0),
 }
-var ShadowEval5 = Call{
-	Argument: IntLiteral{2},
-	Function: Call{
-		Argument: (ADD(ADD(1))) (1)
-		Function ADD,
-	},
-}
-var ShadowEval6 = Call{
-	Argument: IntLiteral{2},
-	Function: ADD( (ADD (ADD(1)) )(1) )
-}
-var ShadowEval 7 = ADD( (ADD (ADD(1)) )(1) )(2) = (ADD( (ADD(1)) )(1) + 2 =( (ADD(1)) ) + 1 + 2 = 1 + 1 + 2 = 4
+var ShadowEval5 = (ADD(0))(1) = 0 + 1 = 1
 
 // A Call node whose Function child is a Call whose Argument child is an ARG resolves as a block that binds the parents argument value to the childs ARG variable
 var NamedFuncEval2 = Block{
