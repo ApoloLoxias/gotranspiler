@@ -200,6 +200,98 @@ var NamedFuncEval1 = Call{
 	},
 }
 
+// shadowing
+// x = 1
+// x = x+1
+// x + 2 = 2 + 2 =4
+
+var Shadow = Block{
+	Bind: IntLiteral{1},
+	To:   Variable{"x"},
+	Assess: Block{
+		Bind: Call{
+			Argument: IntLiteral{1},
+			Function: Call{
+				Argument: Variable{"x"},
+				Function: Variable{"+"},
+			},
+		},
+		To: Variable{"x"},
+		Assess: Call{
+			Argument: IntLiteral{2},
+			Function: Call{
+				Argument: Variable{"x"},
+				Function: Variable{"+"},
+			},
+		},
+	},
+}
+var ShadowEval1 = Block{ //This eval is wronky/wrong
+	Bind: IntLiteral{1},
+	To:   Variable{"x"},
+	Assess: Call{
+		Argument: intLiteral{2},
+		Function: Call{
+			Argument: Call{
+				Argument: intLiteral{1},
+				Function: Call{
+					Argument: Variable{"x"},
+					Function: Variable{"+"},
+				},
+			},
+			Function: Variable{"+"},
+		},
+	},
+}
+var ShadowEval2 = Call{
+	Argument: IntLiteral{2},
+	Function: Call{
+		Argument: Call{
+			Argument: IntLiteral{1},
+			Function: Call{
+				Argument: IntlLiteral{1},
+				Function: Variable{"+"},
+			},
+		},
+		Function: Variable{"+"},
+	},
+}
+var ShadowEval3 = Call{
+	Argument: IntLiteral{2},
+	Function: Call{
+		Argument: Call{
+			Argument: intLiteral{1},
+			Function: Call{
+				Argument: IntLitral{1},
+				Function: ADD,
+			},
+		},
+		Function: ADD,
+	},
+}
+var ShadowEval4 = Call{
+	Argument: IntLiteral{2},
+	Function: Call{
+		Argument: Call{
+			Argument: IntLiteral{1},
+			Function: ADD(1),
+		},
+		Function: ADD,
+	},
+}
+var ShadowEval5 = Call{
+	Argument: IntLiteral{2},
+	Function: Call{
+		Argument: (ADD(ADD(1))) (1)
+		Function ADD,
+	},
+}
+var ShadowEval6 = Call{
+	Argument: IntLiteral{2},
+	Function: ADD( (ADD (ADD(1)) )(1) )
+}
+var ShadowEval 7 = ADD( (ADD (ADD(1)) )(1) )(2) = (ADD( (ADD(1)) )(1) + 2 =( (ADD(1)) ) + 1 + 2 = 1 + 1 + 2 = 4
+
 // A Call node whose Function child is a Call whose Argument child is an ARG resolves as a block that binds the parents argument value to the childs ARG variable
 var NamedFuncEval2 = Block{
 	Bind: IntLiteral{1},
