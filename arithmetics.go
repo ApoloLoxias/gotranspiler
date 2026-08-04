@@ -8,7 +8,8 @@ type BuiltinFunc func(Expression) (Expression, error)
 func (BuiltinFunc) ExpressionMarker() {}
 
 var Sum BuiltinFunc = func(x Expression) (Expression, error) {
-	switch X := x.(type) {
+	ex, _ := EvalArithmetics(x)
+	switch X := ex.(type) {
 	case IntLiteral:
 		var f BuiltinFunc = func(y Expression) (Expression, error) {
 			switch Y := y.(type) {
@@ -51,7 +52,8 @@ func EvalAriCall(node Call) (Expression, error) {
 	case IntLiteral:
 		return EvalAriInt(F)
 	case Call:
-		return EvalAriCall(F)
+		g, _ := EvalAriCall(F)
+		return EvalAriCall(Call{Argument: x, Function: g})
 	case BuiltinFunc:
 		return F(x)
 
@@ -73,5 +75,20 @@ var simpleAdition = Call{
 }
 
 func main() {
-	fmt.Print(EvalArithmetics(simpleAdition))
+	E1, _ := EvalArithmetics(simpleAdition)
+	E2, _ := EvalArithmetics(tripleAddition)
+	fmt.Println("1 + 2 = ", E1)
+	fmt.Println("1 + 2 + 3 = ", E2)
+}
+
+/*
+1+2+3
+*/
+
+var tripleAddition = Call{
+	Argument: IntLiteral{3},
+	Function: Call{
+		Function: Sum,
+		Argument: simpleAdition,
+	},
 }
