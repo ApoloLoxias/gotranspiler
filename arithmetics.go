@@ -25,6 +25,24 @@ var Sum BuiltinFunc = func(x Expression) (Expression, error) {
 	}
 }
 
+var Sub BuiltinFunc = func(x Expression) (Expression, error) {
+	ex, _ := EvalArithmetics(x)
+	switch X := ex.(type) {
+	case IntLiteral:
+		var f BuiltinFunc = func(y Expression) (Expression, error) {
+			switch Y := y.(type) {
+			case IntLiteral:
+				return IntLiteral{Value: X.Value - Y.Value}, nil
+			default:
+				return nil, errors.New("a")
+			}
+		}
+		return f, nil
+	default:
+		return nil, errors.New("a")
+	}
+}
+
 var Prod BuiltinFunc = func(x Expression) (Expression, error) {
 	ex, _ := EvalArithmetics(x)
 	switch X := ex.(type) {
@@ -41,6 +59,25 @@ var Prod BuiltinFunc = func(x Expression) (Expression, error) {
 	default:
 		return nil, errors.New("A")
 	}
+}
+
+var Div BuiltinFunc = func(x Expression) (Expression, error) {
+	ex, _ := EvalArithmetics(x)
+	switch X := ex.(type) {
+	case IntLiteral:
+		var f BuiltinFunc = func(y Expression) (Expression, error) {
+			switch Y := y.(type) {
+			case IntLiteral:
+				return IntLiteral{Value: X.Value / Y.Value}, nil
+			default:
+				return nil, errors.New("")
+			}
+		}
+		return f, nil
+	default:
+		return nil, errors.New("")
+	}
+
 }
 
 func EvalArithmetics(Node Expression) (Expression, error) {
