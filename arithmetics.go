@@ -51,6 +51,7 @@ func EvalArithmetics(Node Expression) (Expression, error) {
 		return EvalAriCall(node)
 	case BuiltinFunc:
 		//TODO
+		return Node, nil
 
 	default:
 		return nil, errors.New("not arithmetics or not implemented yet")
@@ -65,13 +66,14 @@ func EvalAriInt(x IntLiteral) (IntLiteral, error) {
 
 func EvalAriCall(node Call) (Expression, error) {
 	f, x := node.Function, node.Argument
+	X, _ := EvalArithmetics(x)
 
 	switch F := f.(type) {
 	case IntLiteral:
 		return EvalAriInt(F)
 	case Call:
 		g, _ := EvalAriCall(F)
-		return EvalAriCall(Call{Argument: x, Function: g})
+		return EvalAriCall(Call{Argument: X, Function: g})
 	case BuiltinFunc:
 		return F(x)
 
