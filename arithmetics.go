@@ -25,6 +25,24 @@ var Sum BuiltinFunc = func(x Expression) (Expression, error) {
 	}
 }
 
+var Prod BuiltinFunc = func(x Expression) (Expression, error) {
+	ex, _ := EvalArithmetics(x)
+	switch X := ex.(type) {
+	case IntLiteral:
+		var f BuiltinFunc = func(y Expression) (Expression, error) {
+			switch Y := y.(type) {
+			case IntLiteral:
+				return IntLiteral{Value: X.Value * Y.Value}, nil
+			default:
+				return nil, errors.New("a")
+			}
+		}
+		return f, nil
+	default:
+		return nil, errors.New("A")
+	}
+}
+
 func EvalArithmetics(Node Expression) (Expression, error) {
 	switch node := Node.(type) {
 	case IntLiteral:
@@ -77,8 +95,16 @@ var simpleAdition = Call{
 func main() {
 	E1, _ := EvalArithmetics(simpleAdition)
 	E2, _ := EvalArithmetics(tripleAddition)
+	E3, _ := EvalArithmetics(simpleProd)
+	E4, _ := EvalArithmetics(curProd)
+	E5, _ := EvalArithmetics(mix)
+	E6, _ := EvalArithmetics(mix2)
 	fmt.Println("1 + 2 = ", E1)
 	fmt.Println("1 + 2 + 3 = ", E2)
+	fmt.Println("1*2 = ", E3)
+	fmt.Println("1 * 2 * 3 = ", E4)
+	fmt.Println("1*2 + 3 = ", E5)
+	fmt.Println("1 + 2*3 = ", E6)
 }
 
 /*
@@ -90,5 +116,51 @@ var tripleAddition = Call{
 	Function: Call{
 		Function: Sum,
 		Argument: simpleAdition,
+	},
+}
+
+// 1*2
+
+var simpleProd = Call{
+	Argument: IntLiteral{2},
+	Function: Call{
+		Argument: IntLiteral{1},
+		Function: Prod,
+	},
+}
+
+// 1*2*3
+
+var curProd = Call{
+	Argument: IntLiteral{3},
+	Function: Call{
+		Argument: simpleProd,
+		Function: Prod,
+	},
+}
+
+// 1*2+3
+
+var mix = Call{
+	Argument: IntLiteral{3},
+	Function: Call{
+		Argument: simpleProd,
+		Function: Sum,
+	},
+}
+
+// 1+2*3
+
+var mix2 = Call{
+	Argument: Call{
+		Argument: IntLiteral{3},
+		Function: Call{
+			Argument: IntLiteral{2},
+			Function: Prod,
+		},
+	},
+	Function: Call{
+		Argument: IntLiteral{1},
+		Function: Sum,
 	},
 }
