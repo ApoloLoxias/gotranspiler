@@ -16,6 +16,65 @@ func IsPlusMinusSlashOrAsterisk(s rune) bool {
 	return false
 }
 
+type TokenKind string
+
+const (
+	NumToken   TokenKind = "numerical token"
+	OtherToken           = "other token"
+)
+
+type Token struct {
+	Token []rune
+	Kind  TokenKind
+}
+
+type TokenThing struct {
+	Tokens []Token
+	Runes  []rune
+}
+
+func (t *TokenThing) Step() error {
+	nextToken, err := NextToken(t.Runes)
+	if err != nil {
+		return err
+	}
+	if len(nextToken) == 0 {
+		return fmt.Errorf("done")
+	}
+
+	nt := Token{Token: nextToken}
+	nt.Kind = KindOfToken(nt.Token)
+
+	t.Tokens = append(t.Tokens, nt)
+	t.Runes = t.Runes[len(nextToken):]
+
+	return nil
+}
+
+func KindOfToken(s []rune) TokenKind {
+	if len(s) == 0 {
+		return TokenKind("no token")
+	}
+
+	if unicode.IsDigit(s[0]) {
+		return NumToken
+	}
+	return OtherToken
+}
+
+func (t *TokenThing) Tokenize() error {
+	var err error
+
+	for err == nil {
+		err = t.Step()
+		if err == fmt.Errorf("done") {
+			return nil
+		}
+	}
+
+	return err
+}
+
 func NextToken(s []rune) ([]rune, error) {
 	nextToken := make([]rune, 0)
 	var parsing rune
@@ -57,4 +116,13 @@ func main() {
 	plus, _ := NextToken([]rune("+-"))
 	_, err := NextToken([]rune("a"))
 	fmt.Println(string(twelve), string(onetwo), string(plus), err)
+
+	s := "12 +2*3 1"
+	tt := TokenThing{Runes: []rune(s)}
+	tt.Tokenize()
+
+	fmt.Println(s)
+	for _, token := range tt.Tokens {
+		fmt.Printf("%s, %s\n", string(token.Token), token.Kind)
+	}
 }
