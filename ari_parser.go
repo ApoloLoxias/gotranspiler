@@ -20,6 +20,7 @@ type TokenKind string
 
 const (
 	NumToken   TokenKind = "numerical token"
+	SpaceToken           = "whitespace token"
 	OtherToken           = "other token"
 )
 
@@ -58,6 +59,9 @@ func KindOfToken(s []rune) TokenKind {
 
 	if unicode.IsDigit(s[0]) {
 		return NumToken
+	}
+	if unicode.IsSpace(s[0]) {
+		return SpaceToken
 	}
 	return OtherToken
 }
