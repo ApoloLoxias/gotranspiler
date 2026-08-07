@@ -1,7 +1,8 @@
 package main
 
 import "errors"
-import "fmt"
+
+//import "fmt"
 
 type BuiltinFunc func(Expression) (Expression, error)
 
@@ -131,6 +132,7 @@ var simpleAdition = Call{
 	},
 }
 
+/*
 func main() {
 	E1, _ := EvalArithmetics(simpleAdition)
 	E2, _ := EvalArithmetics(tripleAddition)
@@ -145,6 +147,7 @@ func main() {
 	fmt.Println("1*2 + 3 = ", E5)
 	fmt.Println("1 + 2*3 = ", E6)
 }
+*/
 
 /*
 1+2+3
