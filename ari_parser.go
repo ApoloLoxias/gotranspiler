@@ -22,14 +22,14 @@ func Parse(e Expression, tt []Token) (Expression, []Token, error) {
 	var fun Token
 
 	arg1 = tt[0]
-	tt = tt[:1]
+	tt = tt[1:]
 
 	if tt[0].Kind != BinaryInfixToken {
 		return nil, nil, fmt.Errorf("num followed by non operation")
 	}
 
 	fun = tt[0]
-	tt = tt[:1]
+	tt = tt[1:]
 
 	if tt[0].Kind != NumToken {
 		return nil, nil, fmt.Errorf("operation followed by non num")
@@ -220,5 +220,5 @@ func main() {
 		fmt.Printf("%s, %s\n", string(token.Token), token.Kind)
 	}
 
-	fmt.Println(parse1)
+	fmt.Println(EvalArithmetics(parse1))
 }
