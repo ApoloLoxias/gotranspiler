@@ -10,12 +10,12 @@ type Token struct {
 type TokenKind string // Enum
 
 const (
-	NUMBER TokenKind = "Number"
+	TokenNUMBER TokenKind = "Number"
 
-	CROSS         TokenKind = "PlusToken"
-	HYPHEN        TokenKind = "HyphenToken"
-	ASTERISK      TokenKind = "AsteriskToken"
-	FORWARD_SLASH TokenKind = "ForwardSlashToken"
+	TokenCROSS         TokenKind = "PlusToken"
+	TokenHYPHEN        TokenKind = "HyphenToken"
+	TokenASTERISK      TokenKind = "AsteriskToken"
+	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
 )
 
 func (t Token) String() string {
