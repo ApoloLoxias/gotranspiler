@@ -3,6 +3,7 @@ package lex
 import (
 	"errors"
 	"fmt"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -30,8 +31,8 @@ func (l *lexer) lex() {
 	}
 
 	switch l.currentKind() {
-	case runeNUMBER:
-		l.lexNumber()
+	case runeDIGIT:
+		l.lexDECIMAL()
 	case runeSYMBOL:
 		l.lexSymbol()
 	default:
@@ -55,3 +56,63 @@ func (l *lexer) next() error {
 }
 
 var errEOF = errors.New("end of file")
+
+func (l *lexer) currentKind() runeKind {
+	r := l.current
+
+	if unicode.IsDigit(r) {
+		return runeDIGIT
+	}
+	if isOperator(r) {
+		return runeSYMBOL
+	}
+
+	return runeUNKNOWN
+}
+
+type runeKind string
+
+const (
+	runeUNKNOWN runeKind = "unkown rune"
+
+	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
+	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*
+)
+
+func isOperator(r rune) bool {
+	for _, Rune := range operatorCharacters {
+		if r == Rune {
+			return true
+		}
+	}
+	return false
+}
+
+var operatorCharacters = []rune("+-*/") // wish it were const
+
+func (l *lexer) produceToken(width int, kind TokenKind) {
+	token := Token{Value: l.in[l.at : l.at+width], Kind: TokenNUMBER}
+	l.out = append(l.out, token)
+}
+
+/* -------------------------- */
+
+type lexingFunction func(*lexer) lexingFunction
+
+func lexDecimal(l *lexer) lexingFunction {
+	i := -1
+	var err error = nil
+
+	for l.currentKind() == runeDIGIT {
+		i += l.width
+		err = l.next()
+
+		if err == errEOF {
+			l.produceToken(i, TokenNUMBER)
+			return nil
+		}
+	}
+
+	l.produceToken(i, TokenNUMBER)
+	return lexSymbol
+}
