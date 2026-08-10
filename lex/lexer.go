@@ -1,6 +1,7 @@
 package lex
 
 import (
+	"errors"
 	"fmt"
 	"unicode/utf8"
 )
@@ -11,10 +12,11 @@ type lexer struct {
 	at      int
 	current rune
 	width   int
+	length  int
 }
 
 func Lex(s string) []Token {
-	l := lexer{s, []Token{}, 0, utf8.RuneError, 0}
+	l := lexer{s, []Token{}, 0, utf8.RuneError, 0, len(s)}
 	l.lex()
 	return l.out
 }
@@ -22,9 +24,9 @@ func Lex(s string) []Token {
 func (l *lexer) lex() {
 	var err error
 
-	l.current, l.width, err = l.next()
+	err = l.next()
 	if err == errEOF {
-		return nil
+		return
 	}
 
 	switch l.currentKind() {
@@ -39,8 +41,17 @@ func (l *lexer) lex() {
 
 /* -------------------------- */
 
-func (l *lexer) next() rune, int, error{
-	if len(l.in) <= l.at{
-		return utf8.RuneError, 0, errEOF
+func (l *lexer) next() error {
+	if l.length <= l.at {
+		l.current = utf8.RuneError
+		return errEOF
 	}
+
+	l.at = l.at + l.width
+
+	l.current, l.width = utf8.DecodeRuneInString(l.in[l.at:])
+
+	return nil
 }
+
+var errEOF = errors.New("end of file")

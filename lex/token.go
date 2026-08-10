@@ -10,7 +10,9 @@ type Token struct {
 type TokenKind string // Enum
 
 const (
-	TokenNUMBER TokenKind = "Number"
+	TokenEOF TokenKind = "EndOfFileToken"
+
+	TokenNUMBER TokenKind = "NumericalToken"
 
 	TokenCROSS         TokenKind = "PlusToken"
 	TokenHYPHEN        TokenKind = "HyphenToken"
