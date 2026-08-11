@@ -91,8 +91,8 @@ var (
 	runeFORWARD_SLASH = rune("/"[0])
 )
 
-func (l *lexer) produceToken(width int, kind TokenKind) {
-	token := Token{Value: l.in[l.at : l.at+width], Kind: kind}
+func (l *lexer) produceToken(start int, width int, kind TokenKind) {
+	token := Token{Value: l.in[start : start+width], Kind: kind}
 	l.out = append(l.out, token)
 }
 
@@ -101,33 +101,34 @@ func (l *lexer) produceToken(width int, kind TokenKind) {
 type lexingFunction func(*lexer) lexingFunction
 
 func lexDecimal(l *lexer) lexingFunction {
-	i := 0
+	startAt := l.at
+	totalWidth := 0
 	var err error = nil
 
 	for l.currentKind() == runeDIGIT {
-		i += l.width
+		totalWidth += l.width
 		err = l.next()
 
 		if err == errEOF {
-			l.produceToken(i, TokenNUMBER)
+			l.produceToken(startAt, totalWidth, TokenNUMBER)
 			return nil
 		}
 	}
 
-	l.produceToken(i, TokenNUMBER)
+	l.produceToken(startAt, totalWidth, TokenNUMBER)
 	return lexSymbol
 }
 
 func lexSymbol(l *lexer) lexingFunction {
 	switch l.current {
 	case rune(runeCROSS):
-		l.produceToken(l.width, TokenCROSS)
+		l.produceToken(l.at, l.width, TokenCROSS)
 	case rune(runeHYPHEN):
-		l.produceToken(l.width, TokenHYPHEN)
+		l.produceToken(l.at, l.width, TokenHYPHEN)
 	case rune(runeASTERISK):
-		l.produceToken(l.width, TokenASTERISK)
+		l.produceToken(l.at, l.width, TokenASTERISK)
 	case rune(runeFORWARD_SLASH):
-		l.produceToken(l.width, TokenFORWARD_SLASH)
+		l.produceToken(l.at, l.width, TokenFORWARD_SLASH)
 	}
 
 	err := l.next()
