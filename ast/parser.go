@@ -30,11 +30,11 @@ func (p *parser) parse() {
 }
 
 func (p *parser) next() error {
+	p.at++
 	if p.at >= len(p.in) {
 		return errEOF
 	}
 
-	p.at++
 	return nil
 }
 

@@ -18,7 +18,7 @@ func (i IntE) Evaluate() Expression {
 }
 
 func (i IntE) String() string {
-	return fmt.Sprintf("IntE(%i)", i.Value)
+	return fmt.Sprintf("IntE(%d)", i.Value)
 }
 
 //
