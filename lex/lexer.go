@@ -17,6 +17,12 @@ type lexer struct {
 
 func Lex(s string) []Token {
 	l := lexer{s, []Token{}, 0, utf8.RuneError, 0, len(s)}
+	err := l.next()
+
+	if err == errEOF {
+		return []Token{}
+	}
+
 	l.lex()
 	return l.out
 }
@@ -31,12 +37,12 @@ func (l *lexer) lex() {
 /* -------------------------- */
 
 func (l *lexer) next() error {
+	l.at = l.at + l.width
+
 	if l.length <= l.at {
 		l.current = utf8.RuneError
 		return errEOF
 	}
-
-	l.at = l.at + l.width
 
 	l.current, l.width = utf8.DecodeRuneInString(l.in[l.at:])
 
@@ -86,7 +92,7 @@ var (
 )
 
 func (l *lexer) produceToken(width int, kind TokenKind) {
-	token := Token{Value: l.in[l.at : l.at+width], Kind: TokenNUMBER}
+	token := Token{Value: l.in[l.at : l.at+width], Kind: kind}
 	l.out = append(l.out, token)
 }
 
