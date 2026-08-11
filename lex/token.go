@@ -20,8 +20,17 @@ const (
 	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
 )
 
+var TerminalTokens = []TokenKind{TokenNUMBER} //const
+
+var InfixTokens = []TokenKind{ //const
+	TokenCROSS,
+	TokenHYPHEN,
+	TokenASTERISK,
+	TokenFORWARD_SLASH,
+}
+
 func (t Token) String() string {
-	return fmt.Sprintf("Token{%s, '%s'}", t.Kind, t.Value)
+	return fmt.Sprintf("%s(%s)", t.Kind, t.Value)
 }
 
 func (t Token) IsOfKind(kinds ...TokenKind) bool {
@@ -31,4 +40,12 @@ func (t Token) IsOfKind(kinds ...TokenKind) bool {
 		}
 	}
 	return false
+}
+
+func (t Token) IsTerminal() bool {
+	return t.IsOfKind(TerminalTokens...)
+}
+
+func (t Token) IsInfix() bool {
+	return t.IsOfKind(InfixTokens...)
 }

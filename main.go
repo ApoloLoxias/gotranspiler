@@ -2,7 +2,10 @@ package main
 
 import "fmt"
 import "github.com/ApoloLoxias/gotranspiler/lex"
+import "github.com/ApoloLoxias/gotranspiler/ast"
 
 func main() {
-	fmt.Println(lex.Lex("1+2-3*4/5"))
+	tokens := lex.Lex("1")
+	str := ast.Parse(tokens).String()
+	fmt.Println(str)
 }
