@@ -11,6 +11,7 @@ type TokenKind string // Enum
 
 const (
 	TokenEOF TokenKind = "EndOfFileToken"
+	TokenSOF TokenKind = "StarfOfFileToken"
 
 	TokenNUMBER TokenKind = "NumericalToken"
 
@@ -19,6 +20,9 @@ const (
 	TokenASTERISK      TokenKind = "AsteriskToken"
 	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
 )
+
+var EOFtoken = Token{"EOF", TokenEOF} //const
+var SOFtoken = Token{"SOF", TokenSOF} //const
 
 var TerminalTokens = []TokenKind{TokenNUMBER} //const
 

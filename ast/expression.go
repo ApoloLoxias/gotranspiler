@@ -1,6 +1,8 @@
 package ast
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Expression interface {
 	Evaluate() Expression
@@ -35,3 +37,25 @@ func (a ApplicationE) Evaluate() Expression { //TODO
 func (a ApplicationE) String() string {
 	return fmt.Sprintf("ApplicationE{Function: %s, Argument: %s}", a.Function, a.Argument)
 }
+
+//
+
+type BuiltInFunc struct {
+	Name string
+}
+
+func (f BuiltInFunc) Evaluate() Expression { //TODO
+	return nil
+}
+
+func (f BuiltInFunc) String() string {
+	return fmt.Sprintf("BuiltInFunc(%s)", f.Name)
+}
+
+var Sum = BuiltInFunc{Name: "Sum"} //const
+
+var Sub = BuiltInFunc{Name: "Subtraction"} //const
+
+var Mul = BuiltInFunc{Name: "Multiplication"} //const
+
+var Div = BuiltInFunc{Name: "Division"} // const
