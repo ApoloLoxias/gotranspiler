@@ -9,6 +9,7 @@ func main() {
 	test("11-22")
 	test("123*456")
 	test("01/2000")
+	test("1+3+2")
 }
 
 func test(s string) {
@@ -17,7 +18,7 @@ func test(s string) {
 	tokens := lex.Lex(s)
 	fmt.Println(tokens)
 
-	str := ast.Parse(tokens).String()
+	str := ast.Parse(tokens).Pretty()
 	fmt.Println(str)
 
 	fmt.Println("------------------")
