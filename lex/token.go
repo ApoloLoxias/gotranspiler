@@ -19,6 +19,9 @@ const (
 	TokenHYPHEN        TokenKind = "HyphenToken"
 	TokenASTERISK      TokenKind = "AsteriskToken"
 	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
+
+	TokenOPEN_PARENTHESIS  TokenKind = "OpenParenthesis"
+	TokenCLOSE_PARENTHESIS TokenKind = "CloseParenthesis"
 )
 
 var EOFtoken = Token{"EOF", TokenEOF} //const

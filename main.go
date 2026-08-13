@@ -18,6 +18,8 @@ func main() {
 	test("1+2*3*4+5")
 	test("1-2+4")
 	test("1+")
+
+	test("(1+0-(42/1)+1-(0))")
 }
 
 func test(s string) {

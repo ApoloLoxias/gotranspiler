@@ -28,7 +28,7 @@ func Lex(s string) []Token {
 }
 
 func (l *lexer) lex() {
-	lexing := lexDecimal(l)
+	lexing := lexNumOrParen(l)
 	for lexing != nil {
 		lexing = lexing(l)
 	}
@@ -61,6 +61,10 @@ func (l *lexer) currentKind() runeKind {
 		return runeSYMBOL
 	}
 
+	if r == runeOPEN_PARENTHESIS || r == runeCLOSE_PARENTHESIS {
+		return runePARENTHESIS
+	}
+
 	return runeUNKNOWN
 }
 
@@ -71,6 +75,8 @@ const (
 
 	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
 	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*
+
+	runePARENTHESIS runeKind = "parenthesis rune"
 )
 
 func isOperator(r rune) bool {
@@ -89,6 +95,9 @@ var (
 	runeHYPHEN        = rune("-"[0])
 	runeASTERISK      = rune("*"[0])
 	runeFORWARD_SLASH = rune("/"[0])
+
+	runeOPEN_PARENTHESIS  = rune("("[0])
+	runeCLOSE_PARENTHESIS = rune(")"[0])
 )
 
 func (l *lexer) produceToken(start int, width int, kind TokenKind) {
@@ -136,5 +145,26 @@ func lexSymbol(l *lexer) lexingFunction {
 	if err == errEOF {
 		return nil
 	}
+	return lexNumOrParen
+}
+
+func lexNumOrParen(l *lexer) lexingFunction {
+	if l.current == runeOPEN_PARENTHESIS {
+		err := l.next()
+		if err == errEOF {
+			return nil
+		}
+		l.produceToken(l.at, l.width, TokenOPEN_PARENTHESIS)
+		return lexNumOrParen
+	}
+	if l.current == runeCLOSE_PARENTHESIS {
+		err := l.next()
+		if err == errEOF {
+			return nil
+		}
+		l.produceToken(l.at, l.width, TokenCLOSE_PARENTHESIS)
+		return lexNumOrParen
+	}
+
 	return lexDecimal
 }
