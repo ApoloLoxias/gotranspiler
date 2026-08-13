@@ -2,9 +2,8 @@ package ast
 
 import (
 	"errors"
-	"strconv"
-
 	"github.com/ApoloLoxias/gotranspiler/lex"
+	"strconv"
 )
 
 func Parse(tokens []lex.Token) Expression {
@@ -39,7 +38,7 @@ func (p *parser) next() error {
 }
 
 func (p *parser) peekAhead() lex.Token {
-	if p.at >= len(p.in) {
+	if p.at >= len(p.in)-1 {
 		return lex.EOFtoken
 	}
 	return p.in[p.at+1]
@@ -77,8 +76,9 @@ func parseNumber(p *parser) (Expression, parsingFunction) {
 func parseInfixOperation(p *parser) (Expression, parsingFunction) {
 	arg1 := p.out
 
+	opKind := p.in[p.at].Kind
 	var op BuiltInFunc
-	switch p.in[p.at].Kind {
+	switch opKind {
 	case lex.TokenCROSS:
 		op = Sum
 	case lex.TokenHYPHEN:
@@ -98,7 +98,34 @@ func parseInfixOperation(p *parser) (Expression, parsingFunction) {
 	if err == errEOF {
 		return expr, nil
 	}
-	return expr, parseInfixFollowUp
+	return expr, parseInfixFollowUpGenerator(lex.InfixPriority[opKind])
+}
+
+func parseInfixFollowUpGenerator(opPriority int) parsingFunction {
+	return func(p *parser) (Expression, parsingFunction) {
+		next := p.peekAhead()
+		//fmt.Println("next=", next)
+		if lex.InfixPriority[next.Kind] > opPriority {
+
+			arg2 := Parse(p.in[p.at:])
+			return ApplicationE{
+				Function: p.out,
+				Argument: arg2,
+			}, nil
+		}
+
+		/* -------------------- */
+		arg2, pFunc := parseNumber(p)
+
+		/*------------------*/
+		expr := ApplicationE{
+			Function: p.out,
+			Argument: arg2,
+		}
+
+		return expr, pFunc
+	}
+
 }
 
 func parseInfixFollowUp(p *parser) (Expression, parsingFunction) {

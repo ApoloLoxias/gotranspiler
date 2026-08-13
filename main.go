@@ -10,6 +10,14 @@ func main() {
 	test("123*456")
 	test("01/2000")
 	test("1+3+2")
+	test("1+3*2")
+	test("1+2*3*4")
+	test("1+2*3+4")
+	test("1*2+3")
+	test("1*2+3*4")
+	test("1+2*3*4+5")
+	test("1-2+4")
+	test("1+")
 }
 
 func test(s string) {

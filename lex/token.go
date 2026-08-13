@@ -33,6 +33,13 @@ var InfixTokens = []TokenKind{ //const
 	TokenFORWARD_SLASH,
 }
 
+var InfixPriority = map[TokenKind]int{
+	TokenCROSS:         1,
+	TokenHYPHEN:        1,
+	TokenASTERISK:      2,
+	TokenFORWARD_SLASH: 2,
+}
+
 func (t Token) String() string {
 	return fmt.Sprintf("%s(%s)", t.Kind, t.Value)
 }
