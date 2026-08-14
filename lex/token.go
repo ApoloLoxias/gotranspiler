@@ -44,7 +44,7 @@ var InfixPriority = map[TokenKind]int{
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("%s(%s)", t.Kind, t.Value)
+	return fmt.Sprintf("%s('%s')", t.Kind, t.Value)
 }
 
 func (t Token) IsOfKind(kinds ...TokenKind) bool {

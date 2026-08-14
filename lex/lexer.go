@@ -124,7 +124,9 @@ func lexDecimal(l *lexer) lexingFunction {
 		}
 	}
 
-	l.produceToken(startAt, totalWidth, TokenNUMBER)
+	if totalWidth != 0 {
+		l.produceToken(startAt, totalWidth, TokenNUMBER)
+	}
 	return lexSymbol
 }
 
@@ -138,6 +140,10 @@ func lexSymbol(l *lexer) lexingFunction {
 		l.produceToken(l.at, l.width, TokenASTERISK)
 	case rune(runeFORWARD_SLASH):
 		l.produceToken(l.at, l.width, TokenFORWARD_SLASH)
+	case runeCLOSE_PARENTHESIS:
+		l.produceToken(l.at, l.width, TokenCLOSE_PARENTHESIS)
+	case runeOPEN_PARENTHESIS: // This one should probably never happen on valid code
+		l.produceToken(l.at, l.width, TokenOPEN_PARENTHESIS)
 	}
 
 	err := l.next()
@@ -150,19 +156,19 @@ func lexSymbol(l *lexer) lexingFunction {
 
 func lexNumOrParen(l *lexer) lexingFunction {
 	if l.current == runeOPEN_PARENTHESIS {
+		l.produceToken(l.at, l.width, TokenOPEN_PARENTHESIS)
 		err := l.next()
 		if err == errEOF {
 			return nil
 		}
-		l.produceToken(l.at, l.width, TokenOPEN_PARENTHESIS)
 		return lexNumOrParen
 	}
 	if l.current == runeCLOSE_PARENTHESIS {
+		l.produceToken(l.at, l.width, TokenCLOSE_PARENTHESIS)
 		err := l.next()
 		if err == errEOF {
 			return nil
 		}
-		l.produceToken(l.at, l.width, TokenCLOSE_PARENTHESIS)
 		return lexNumOrParen
 	}
 
