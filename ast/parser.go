@@ -21,7 +21,7 @@ type parser struct {
 }
 
 func (p *parser) parse() {
-	parsing := parseNumber
+	parsing := parseTerminal
 	for parsing != nil {
 		p.out, parsing = parsing(p)
 	}
@@ -56,6 +56,16 @@ var errEOF = errors.New("EOF")
 /* ------------------------- */
 
 type parsingFunction func(*parser) (Expression, parsingFunction)
+
+func parseTerminal(p *parser) (Expression, parsingFunction) {
+	switch p.in[p.at].Kind {
+	case lex.TokenNUMBER:
+		return parseNumber(p)
+	case lex.TokenOPEN_PARENTHESIS:
+		return parseParenthesis(p)
+	}
+	return nil, nil
+}
 
 func parseNumber(p *parser) (Expression, parsingFunction) {
 	value, _ := strconv.Atoi(p.in[p.at].Value)
@@ -115,7 +125,7 @@ func parseInfixFollowUpGenerator(opPriority int) parsingFunction {
 		}
 
 		/* -------------------- */
-		arg2, pFunc := parseNumber(p)
+		arg2, pFunc := parseTerminal(p)
 
 		/*------------------*/
 		expr := ApplicationE{
@@ -136,4 +146,12 @@ func parseInfixFollowUp(p *parser) (Expression, parsingFunction) {
 	}
 
 	return expr, pFunc
+}
+
+func parseParenthesis(p *parser) (Expression, parsingFunction) {
+	if p.next() == errEOF {
+		return nil, nil
+	} //TODO ExpresisonError
+
+	return parseTerminal(p)
 }
