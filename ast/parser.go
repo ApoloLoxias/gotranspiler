@@ -8,8 +8,7 @@ import (
 
 func Parse(tokens []lex.Token) Expression {
 	parser := parser{tokens, nil, 0}
-	parser.parse()
-	return parser.out
+	return parser.parse(0)
 }
 
 /* ------------------------- */
@@ -20,12 +19,56 @@ type parser struct {
 	at  int
 }
 
-func (p *parser) parse() {
-	parsing := parseTerminal
-	for parsing != nil {
-		p.out, parsing = parsing(p)
+func (p *parser) parse(previousPriority int) Expression {
+	/*if p.next() == errEOF {
+		return nil
+	}*/
+
+	argToken := p.current()
+	var arg Expression
+	switch argToken.Kind {
+	case lex.TokenNUMBER:
+		value, _ := strconv.Atoi(argToken.Value)
+		arg = IntE{Value: value}
 	}
-	return
+
+	if p.next() == errEOF {
+		return arg
+	}
+
+	for p.at < len(p.in) {
+		operator := p.current()
+
+		var operation Expression
+		switch operator.Kind {
+		case lex.TokenCROSS:
+			operation = Sum
+		case lex.TokenHYPHEN:
+			operation = Sub
+		case lex.TokenASTERISK:
+			operation = Mul
+		case lex.TokenFORWARD_SLASH:
+			operation = Div
+		}
+
+		priority := lex.InfixPriority[operator.Kind]
+		if priority <= previousPriority {
+			return arg
+		}
+
+		if p.next() == errEOF {
+			return ApplicationE{Function: operation, Argument: arg}
+		}
+
+		arg2 := p.parse(priority)
+
+		arg = ApplicationE{
+			Function: ApplicationE{Function: operation, Argument: arg},
+			Argument: arg2,
+		}
+	}
+
+	return arg
 }
 
 func (p *parser) next() error {
@@ -51,107 +94,10 @@ func (p *parser) peekBehind() lex.Token {
 	return p.in[p.at-1]
 }
 
+func (p *parser) current() lex.Token {
+	return p.in[p.at]
+}
+
 var errEOF = errors.New("EOF")
 
 /* ------------------------- */
-
-type parsingFunction func(*parser) (Expression, parsingFunction)
-
-func parseTerminal(p *parser) (Expression, parsingFunction) {
-	switch p.in[p.at].Kind {
-	case lex.TokenNUMBER:
-		return parseNumber(p)
-	case lex.TokenOPEN_PARENTHESIS:
-		return parseParenthesis(p)
-	}
-	return nil, nil
-}
-
-func parseNumber(p *parser) (Expression, parsingFunction) {
-	value, _ := strconv.Atoi(p.in[p.at].Value)
-	expr := IntE{Value: value}
-
-	err := p.next()
-	if err == errEOF {
-		return expr, nil
-	}
-
-	if p.in[p.at].IsInfix() {
-		return expr, parseInfixOperation
-	}
-
-	return nil, nil //TODO
-}
-
-func parseInfixOperation(p *parser) (Expression, parsingFunction) {
-	arg1 := p.out
-
-	opKind := p.in[p.at].Kind
-	var op BuiltInFunc
-	switch opKind {
-	case lex.TokenCROSS:
-		op = Sum
-	case lex.TokenHYPHEN:
-		op = Sub
-	case lex.TokenASTERISK:
-		op = Mul
-	case lex.TokenFORWARD_SLASH:
-		op = Div
-	}
-
-	expr := ApplicationE{
-		Function: op,
-		Argument: arg1,
-	}
-
-	err := p.next()
-	if err == errEOF {
-		return expr, nil
-	}
-	return expr, parseInfixFollowUpGenerator(lex.InfixPriority[opKind])
-}
-
-func parseInfixFollowUpGenerator(opPriority int) parsingFunction {
-	return func(p *parser) (Expression, parsingFunction) {
-		next := p.peekAhead()
-		//fmt.Println("next=", next)
-		if lex.InfixPriority[next.Kind] > opPriority {
-
-			arg2 := Parse(p.in[p.at:])
-			return ApplicationE{
-				Function: p.out,
-				Argument: arg2,
-			}, nil
-		}
-
-		/* -------------------- */
-		arg2, pFunc := parseTerminal(p)
-
-		/*------------------*/
-		expr := ApplicationE{
-			Function: p.out,
-			Argument: arg2,
-		}
-
-		return expr, pFunc
-	}
-
-}
-
-func parseInfixFollowUp(p *parser) (Expression, parsingFunction) {
-	arg2, pFunc := parseNumber(p)
-	expr := ApplicationE{
-		Function: p.out,
-		Argument: arg2,
-	}
-
-	return expr, pFunc
-}
-
-func parseParenthesis(p *parser) (Expression, parsingFunction) {
-	if p.next() == errEOF {
-		return nil, nil
-	} //TODO ExpresisonError
-
-	return parseTerminal(p)
-}
