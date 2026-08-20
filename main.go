@@ -21,7 +21,11 @@ func main() {
 
 	test("(1")
 	test("(1)")
+	test("(1+2)")
+	test("(1+2)*3")
+	test("1*(2+3)")
 	test("(1+0-(42/1)+1-(0))")
+	test("1*((2+3)/4)")
 }
 
 func test(s string) {

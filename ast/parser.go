@@ -30,6 +30,11 @@ func (p *parser) parse(previousPriority int) Expression {
 	case lex.TokenNUMBER:
 		value, _ := strconv.Atoi(argToken.Value)
 		arg = IntE{Value: value}
+	case lex.TokenOPEN_PARENTHESIS:
+		if p.next() == errEOF {
+			return nil
+		}
+		return p.parse(0)
 	}
 
 	if p.next() == errEOF {
@@ -49,6 +54,9 @@ func (p *parser) parse(previousPriority int) Expression {
 			operation = Mul
 		case lex.TokenFORWARD_SLASH:
 			operation = Div
+		case lex.TokenCLOSE_PARENTHESIS:
+			p.next()
+			return arg
 		}
 
 		priority := lex.InfixPriority[operator.Kind]
