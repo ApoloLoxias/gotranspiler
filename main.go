@@ -34,8 +34,9 @@ func test(s string) {
 	tokens := lex.Lex(s)
 	fmt.Println(tokens)
 
-	str := ast.Parse(tokens).Pretty()
-	fmt.Println(str)
+	expr := ast.Parse(tokens)
+	fmt.Println(expr.Pretty())
+	fmt.Println(expr.Evaluate().Pretty())
 
 	fmt.Println("------------------")
 }
