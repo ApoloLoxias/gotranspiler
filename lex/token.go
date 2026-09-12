@@ -43,6 +43,14 @@ var InfixPriority = map[TokenKind]int{
 	TokenFORWARD_SLASH: 2,
 }
 
+var PrefixTokens = []TokenKind{
+	TokenHYPHEN,
+}
+
+var PrefixPriority = map[TokenKind]int{
+	TokenHYPHEN: 3,
+}
+
 func (t Token) String() string {
 	return fmt.Sprintf("%s('%s')", t.Kind, t.Value)
 }
@@ -62,4 +70,8 @@ func (t Token) IsTerminal() bool {
 
 func (t Token) IsInfix() bool {
 	return t.IsOfKind(InfixTokens...)
+}
+
+func (t Token) IsPrefix() bool {
+	return t.IsOfKind(PrefixTokens...)
 }

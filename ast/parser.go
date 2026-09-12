@@ -26,19 +26,30 @@ func (p *parser) parse(previousPriority int) Expression {
 
 	argToken := p.current()
 	var arg Expression
-	switch argToken.Kind {
-	case lex.TokenNUMBER:
-		value, _ := strconv.Atoi(argToken.Value)
-		arg = IntE{Value: value}
-	case lex.TokenOPEN_PARENTHESIS:
+
+	if argToken.IsPrefix() {
+		priority := lex.PrefixPriority[argToken.Kind]
 		if p.next() == errEOF {
 			return nil
 		}
-		return p.parse(0)
-	}
 
-	if p.next() == errEOF {
-		return arg
+		prefixArg := p.parse(priority)
+		arg = ApplicationE{Function: Neg, Argument: prefixArg}
+	} else {
+		switch argToken.Kind {
+		case lex.TokenNUMBER:
+			value, _ := strconv.Atoi(argToken.Value)
+			arg = IntE{Value: value}
+		case lex.TokenOPEN_PARENTHESIS:
+			if p.next() == errEOF {
+				return nil
+			}
+			return p.parse(0)
+		}
+
+		if p.next() == errEOF {
+			return arg
+		}
 	}
 
 	for p.at < len(p.in) {

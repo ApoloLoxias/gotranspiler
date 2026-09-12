@@ -191,3 +191,13 @@ func DivBuiltIn(x Expression) (Expression, error) {
 		return nil, errors.New("Div typeError")
 	}
 }
+
+var Neg = BuiltInFunc{Name: "Unary negative", Func: NegBuiltIn} //const
+func NegBuiltIn(x Expression) (Expression, error) {
+	switch X := x.(type) {
+	case IntE:
+		return IntE{-X.Value}, nil
+	default:
+		return nil, errors.New("Neg typeError")
+	}
+}
