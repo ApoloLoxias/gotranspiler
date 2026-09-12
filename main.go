@@ -34,6 +34,8 @@ func main() {
 	test("1+-2*3")
 	test("-(1+2)")
 
+	test("$")
+	test("+$")
 }
 
 func test(s string) {

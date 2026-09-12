@@ -20,6 +20,11 @@ const (
 	TokenASTERISK      TokenKind = "AsteriskToken"
 	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
 
+	TokenCROSS_FUNC         TokenKind = "PlusFuncToken"
+	TokenHYPHEN_FUNC        TokenKind = "SubFuncToken"
+	TokenASTERISK_FUNC      TokenKind = "MulFuncToken"
+	TokenFORWARD_SLASH_FUNC TokenKind = "DivFuncToken"
+
 	TokenOPEN_PARENTHESIS  TokenKind = "OpenParenthesis"
 	TokenCLOSE_PARENTHESIS TokenKind = "CloseParenthesis"
 )
@@ -27,7 +32,13 @@ const (
 var EOFtoken = Token{"EOF", TokenEOF} //const
 var SOFtoken = Token{"SOF", TokenSOF} //const
 
-var TerminalTokens = []TokenKind{TokenNUMBER} //const
+var TerminalTokens = []TokenKind{ //const
+	TokenNUMBER,
+	TokenCROSS_FUNC,
+	TokenHYPHEN_FUNC,
+	TokenASTERISK_FUNC,
+	TokenFORWARD_SLASH_FUNC,
+}
 
 var InfixTokens = []TokenKind{ //const
 	TokenCROSS,

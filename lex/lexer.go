@@ -74,7 +74,7 @@ const (
 	runeUNKNOWN runeKind = "unkown rune"
 
 	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
-	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*
+	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$
 
 	runePARENTHESIS runeKind = "parenthesis rune"
 )
@@ -88,13 +88,15 @@ func isOperator(r rune) bool {
 	return false
 }
 
-var operatorCharacters = []rune("+-*/") // wish it were const
+var operatorCharacters = []rune("+-*/$") // wish it were const
 
 var (
 	runeCROSS         = rune("+"[0])
 	runeHYPHEN        = rune("-"[0])
 	runeASTERISK      = rune("*"[0])
 	runeFORWARD_SLASH = rune("/"[0])
+
+	runeDOLLAR = rune("$"[0])
 
 	runeOPEN_PARENTHESIS  = rune("("[0])
 	runeCLOSE_PARENTHESIS = rune(")"[0])
@@ -130,6 +132,7 @@ func lexDecimal(l *lexer) lexingFunction {
 	return lexSymbol
 }
 
+/*
 func lexSymbol(l *lexer) lexingFunction {
 	switch l.current {
 	case rune(runeCROSS):
@@ -152,6 +155,59 @@ func lexSymbol(l *lexer) lexingFunction {
 		return nil
 	}
 	return lexNumOrParen
+}
+*/
+
+func lexSymbol(l *lexer) lexingFunction {
+	var chars []rune
+	var err error
+	for l.currentKind() == runeSYMBOL {
+		chars = append(chars, l.current)
+		err = l.next()
+		if err == errEOF {
+			break
+		}
+	}
+
+	var token Token
+	token.Value = string(chars)
+
+	switch token.Value {
+	case "+":
+		token.Kind = TokenCROSS
+	case "-":
+		token.Kind = TokenHYPHEN
+	case "*":
+		token.Kind = TokenASTERISK
+	case "/":
+		token.Kind = TokenFORWARD_SLASH
+
+	case "+$":
+		token.Kind = TokenCROSS_FUNC
+	case "-$":
+		token.Kind = TokenHYPHEN_FUNC
+	case "*$":
+		token.Kind = TokenASTERISK_FUNC
+	case "/$":
+		token.Kind = TokenFORWARD_SLASH_FUNC
+
+	case "(":
+		token.Kind = TokenOPEN_PARENTHESIS
+	case ")":
+		token.Kind = TokenCLOSE_PARENTHESIS
+
+	default:
+		token.Kind = TokenKind("UndefinedSymbolToken")
+	}
+
+	l.out = append(l.out, token)
+
+	var nextFunc lexingFunction
+	if err != errEOF {
+		nextFunc = lexNumOrParen
+	}
+
+	return nextFunc
 }
 
 func lexNumOrParen(l *lexer) lexingFunction {
