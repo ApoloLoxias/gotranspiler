@@ -30,7 +30,7 @@ func (p *parser) parse(previousPriority int) Expression {
 
 	if argToken.IsPrefix() {
 		priority := lex.PrefixPriority[argToken.Kind]
-		if p.next() == errEOF {
+		if p.next() == errEOF { // since arg is nill at this arm, could probably delete this, and delete p.next() from elif and else arms and just if p.next() == errEOF{return arg} out of the conditional, assuming, of course that p.next() on the else branch does indeed execute for all of the Terminals
 			return nil
 		}
 
@@ -45,8 +45,10 @@ func (p *parser) parse(previousPriority int) Expression {
 			return fun
 		}
 		arg = p.parse(0)
-		return ApplicationE{Function: fun, Argument: arg}
-
+		arg = ApplicationE{Function: fun, Argument: arg}
+		if p.next() == errEOF {
+			return arg
+		}
 	} else {
 		switch argToken.Kind {
 		case lex.TokenNUMBER:
@@ -59,7 +61,7 @@ func (p *parser) parse(previousPriority int) Expression {
 			return p.parse(0)
 		}
 
-		if p.next() == errEOF {
+		if p.next() == errEOF { //executes on case lex.TokenNumber for now, but left out of switch because it will probably be a default step for Terminals (i.e. non-prefix, non-function, non-parenthesis, non-EOF tokens)
 			return arg
 		}
 	}
@@ -101,9 +103,14 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 
 		return arg
+	} else { //If dealing with "Expression1 Expression2" (will likely be preceded by else if p.current().IsPostfix())
+		// arg is Expression1, now we must apply Expression1(Expression2), by means of fun = (E1=arg); arg = E2; return fun(arg) (or assign fun(arg) to arg, which is the deafult return value
+		fun = arg
+		arg = p.parse(0)
+		return ApplicationE{Function: fun, Argument: arg} //maybe just assign it to arg and let arg be returned at the tail by default
 	}
 
-	return arg
+	return arg //currently unreachable except for prefix followed by EOF, which won't likely be a valid expression anyway // seems its not reachable even in that case now, huh!?
 }
 
 func (p *parser) next() error {
