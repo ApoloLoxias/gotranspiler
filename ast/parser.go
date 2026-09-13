@@ -30,12 +30,15 @@ func (p *parser) parse(previousPriority int) Expression {
 
 	if argToken.IsPrefix() {
 		priority := lex.PrefixPriority[argToken.Kind]
-		if p.next() == errEOF { // since arg is nill at this arm, could probably delete this, and delete p.next() from elif and else arms and just if p.next() == errEOF{return arg} out of the conditional, assuming, of course that p.next() on the else branch does indeed execute for all of the Terminals
+		if p.next() == errEOF { // since arg is nill at this arm, could probably delete this, and delete p.next() from elif and else arms and just if p.next() == errEOF{return arg} out of the conditional, assuming, of course that p.next() on the else branch does indeed execute for all of the Terminals //I can't actually do that
 			return nil
 		}
 
-		prefixArg := p.parse(priority)
+		prefixArg := p.parse(priority) //Note: p.next() is called inside the nested p.parse call
 		arg = ApplicationE{Function: Neg, Argument: prefixArg}
+		if p.at >= len(p.in) { //guard clause is necessary because p.next() within a nested p.parse call can't guarantee the safety of p.at/p.current() without
+			return arg
+		}
 	} else if argToken.IsFunction() {
 		switch argToken.Kind {
 		case lex.TokenCROSS_FUNC:
