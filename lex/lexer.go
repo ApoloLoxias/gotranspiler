@@ -44,7 +44,11 @@ func (l *lexer) next() error {
 		return errEOF
 	}
 
-	l.current, l.width = utf8.DecodeRuneInString(l.in[l.at:])
+	nextRune, nextWidth := utf8.DecodeRuneInString(l.in[l.at:])
+	if unicode.IsSpace(nextRune) {
+		return l.next()
+	}
+	l.current, l.width = nextRune, nextWidth
 
 	return nil
 }
@@ -167,6 +171,10 @@ func lexSymbol(l *lexer) lexingFunction {
 		if err == errEOF {
 			break
 		}
+	}
+
+	if len(chars) == 0 {
+		return lexNumOrParen
 	}
 
 	var token Token

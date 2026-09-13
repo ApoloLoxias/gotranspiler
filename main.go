@@ -19,6 +19,14 @@ func main() {
 	test("1-2+4")
 	test("1+")
 
+	fmt.Println("\n==============\n")
+
+	test("1*2")
+	test("1-2")
+	test("1/2")
+
+	fmt.Println("\n==============\n")
+
 	test("(1")
 	test("(1)")
 	test("(1+2)")
@@ -27,14 +35,20 @@ func main() {
 	test("(1+0-(42/1)+1-(0))")
 	test("1*((2+3)/4)")
 
+	fmt.Println("\n==============\n")
+
 	test("-1")
 	test("-1+2")
 	test("-1*2")
-	test("1*-2+3")
-	test("1+-2*3")
+	test("1*(-2)+3")
 	test("-(1+2)")
 
-	test("$")
+	fmt.Println("\n==============\n")
+
+	test("1   + \n(    - 3 )")
+
+	fmt.Println("\n==============\n")
+
 	test("+$")
 }
 
