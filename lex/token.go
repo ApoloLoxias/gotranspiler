@@ -40,13 +40,6 @@ var TerminalTokens = []TokenKind{ //const
 	TokenFORWARD_SLASH_FUNC,
 }
 
-var FunctionTokens = []TokenKind{ //const
-	TokenCROSS_FUNC,
-	TokenHYPHEN_FUNC,
-	TokenASTERISK_FUNC,
-	TokenFORWARD_SLASH_FUNC,
-}
-
 var InfixTokens = []TokenKind{ //const
 	TokenCROSS,
 	TokenHYPHEN,
@@ -63,12 +56,10 @@ var InfixPriority = map[TokenKind]int{
 
 var PrefixTokens = []TokenKind{
 	TokenHYPHEN,
-	// TokenCROSS_FUNC,
 }
 
 var PrefixPriority = map[TokenKind]int{
 	TokenHYPHEN: 3,
-	// TokenCROSS_FUNC: 3,
 }
 
 func (t Token) String() string {
@@ -85,10 +76,6 @@ func (t Token) IsOfKind(kinds ...TokenKind) bool {
 }
 
 func (t Token) IsTerminal() bool {
-	return t.IsOfKind(TerminalTokens...)
-}
-
-func (t Token) IsFunction() bool {
 	return t.IsOfKind(TerminalTokens...)
 }
 
