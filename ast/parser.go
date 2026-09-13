@@ -34,7 +34,13 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 
 		prefixArg := p.parse(priority)
-		arg = ApplicationE{Function: Neg, Argument: prefixArg}
+		switch argToken.Kind {
+		case lex.TokenHYPHEN:
+			arg = ApplicationE{Function: Neg, Argument: prefixArg}
+			//case lex.TokenCROSS_FUNC:
+			//	arg = Sum
+		}
+
 	} else {
 		switch argToken.Kind {
 		case lex.TokenNUMBER:
@@ -45,11 +51,20 @@ func (p *parser) parse(previousPriority int) Expression {
 				return nil
 			}
 			return p.parse(0)
+		case lex.TokenCROSS_FUNC:
+			arg = Sum
 		}
 
 		if p.next() == errEOF {
 			return arg
 		}
+	}
+
+	if argToken.IsFunction() {
+		fun := arg
+		arg = p.parse(0)
+		arg = ApplicationE{Function: fun, Argument: arg}
+		return arg
 	}
 
 	for p.at < len(p.in) {

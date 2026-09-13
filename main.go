@@ -4,6 +4,7 @@ import "fmt"
 import "github.com/ApoloLoxias/gotranspiler/lex"
 import "github.com/ApoloLoxias/gotranspiler/ast"
 
+/*
 func main() {
 	test("1+2")
 	test("11-22")
@@ -50,6 +51,51 @@ func main() {
 	fmt.Println("\n==============\n")
 
 	test("+$")
+}
+*/
+
+func main() {
+	test("+$")
+
+	fmt.Println("\n============\n")
+
+	tk := []lex.Token{
+		{Value: "+$", Kind: lex.TokenCROSS_FUNC},
+		{Value: "-", Kind: lex.TokenHYPHEN},
+		{Value: "1", Kind: lex.TokenNUMBER},
+	}
+	fmt.Println(tk)
+
+	exp := ast.Parse(tk)
+	fmt.Println(exp.Pretty())
+
+	fmt.Println("\n============\n")
+
+	tk = []lex.Token{
+		{Value: "+$", Kind: lex.TokenCROSS_FUNC},
+		{Value: "1", Kind: lex.TokenNUMBER},
+	}
+	fmt.Println(tk)
+
+	exp = ast.Parse(tk)
+	fmt.Println(exp.Pretty())
+
+	fmt.Println("\n============\n")
+
+	tk = []lex.Token{
+		{Value: "+$", Kind: lex.TokenCROSS_FUNC},
+		{Value: "1", Kind: lex.TokenNUMBER},
+		{Value: "1", Kind: lex.TokenNUMBER},
+	}
+	fmt.Println(tk)
+
+	exp = ast.Parse(tk)
+	fmt.Println(exp.Pretty())
+
+	fmt.Println("\n============\n")
+
+	test("1")
+	test("1+1")
 }
 
 func test(s string) {
