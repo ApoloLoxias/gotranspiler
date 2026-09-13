@@ -26,6 +26,7 @@ func (p *parser) parse(previousPriority int) Expression {
 
 	argToken := p.current()
 	var arg Expression
+	var fun Expression
 
 	if argToken.IsPrefix() {
 		priority := lex.PrefixPriority[argToken.Kind]
@@ -35,6 +36,17 @@ func (p *parser) parse(previousPriority int) Expression {
 
 		prefixArg := p.parse(priority)
 		arg = ApplicationE{Function: Neg, Argument: prefixArg}
+	} else if argToken.IsFunction() {
+		switch argToken.Kind {
+		case lex.TokenCROSS_FUNC:
+			fun = Sum
+		}
+		if p.next() == errEOF {
+			return fun
+		}
+		arg = p.parse(0)
+		return ApplicationE{Function: fun, Argument: arg}
+
 	} else {
 		switch argToken.Kind {
 		case lex.TokenNUMBER:
@@ -52,39 +64,43 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 	}
 
-	for p.at < len(p.in) {
-		operator := p.current()
+	if p.current().IsInfix() || p.current().IsParenthesis() {
+		for p.at < len(p.in) {
+			operator := p.current()
 
-		var operation Expression
-		switch operator.Kind {
-		case lex.TokenCROSS:
-			operation = Sum
-		case lex.TokenHYPHEN:
-			operation = Sub
-		case lex.TokenASTERISK:
-			operation = Mul
-		case lex.TokenFORWARD_SLASH:
-			operation = Div
-		case lex.TokenCLOSE_PARENTHESIS:
-			p.next()
-			return arg
+			var operation Expression
+			switch operator.Kind {
+			case lex.TokenCROSS:
+				operation = Sum
+			case lex.TokenHYPHEN:
+				operation = Sub
+			case lex.TokenASTERISK:
+				operation = Mul
+			case lex.TokenFORWARD_SLASH:
+				operation = Div
+			case lex.TokenCLOSE_PARENTHESIS:
+				p.next()
+				return arg
+			}
+
+			priority := lex.InfixPriority[operator.Kind]
+			if priority <= previousPriority {
+				return arg
+			}
+
+			if p.next() == errEOF {
+				return ApplicationE{Function: operation, Argument: arg}
+			}
+
+			arg2 := p.parse(priority)
+
+			arg = ApplicationE{
+				Function: ApplicationE{Function: operation, Argument: arg},
+				Argument: arg2,
+			}
 		}
 
-		priority := lex.InfixPriority[operator.Kind]
-		if priority <= previousPriority {
-			return arg
-		}
-
-		if p.next() == errEOF {
-			return ApplicationE{Function: operation, Argument: arg}
-		}
-
-		arg2 := p.parse(priority)
-
-		arg = ApplicationE{
-			Function: ApplicationE{Function: operation, Argument: arg},
-			Argument: arg2,
-		}
+		return arg
 	}
 
 	return arg

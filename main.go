@@ -50,6 +50,9 @@ func main() {
 	fmt.Println("\n==============\n")
 
 	test("+$")
+	test("+$1")
+	test("(+$1)2")
+	test("(1)1")
 }
 
 func test(s string) {
