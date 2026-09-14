@@ -19,11 +19,10 @@ type parser struct {
 	at  int
 }
 
+/*
 func (p *parser) parse(previousPriority int) Expression {
-	/*if p.next() == errEOF {
-		return nil
-	}*/
 
+	// Parse First
 	argToken := p.current()
 	var arg Expression
 	var fun Expression
@@ -36,6 +35,8 @@ func (p *parser) parse(previousPriority int) Expression {
 
 		prefixArg := p.parse(priority) //Note: p.next() is called inside the nested p.parse call
 		arg = ApplicationE{Function: Neg, Argument: prefixArg}
+
+		// guard clause
 		if p.at >= len(p.in) { //guard clause is necessary because p.next() within a nested p.parse call can't guarantee the safety of p.at/p.current() without
 			return arg
 		}
@@ -57,7 +58,7 @@ func (p *parser) parse(previousPriority int) Expression {
 		case lex.TokenNUMBER:
 			value, _ := strconv.Atoi(argToken.Value)
 			arg = IntE{Value: value}
-		case lex.TokenOPEN_PARENTHESIS:
+		case lex.TokenOPEN_PARENTHESIS: //TODO
 			if p.next() == errEOF {
 				return nil
 			}
@@ -69,6 +70,7 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 	}
 
+	//parseFollowUp
 	if p.current().IsInfix() || p.current().IsParenthesis() {
 		for p.at < len(p.in) {
 			operator := p.current()
@@ -83,7 +85,7 @@ func (p *parser) parse(previousPriority int) Expression {
 				operation = Mul
 			case lex.TokenFORWARD_SLASH:
 				operation = Div
-			case lex.TokenCLOSE_PARENTHESIS:
+			case lex.TokenCLOSE_PARENTHESIS: //TODO
 				p.next()
 				return arg
 			}
@@ -114,6 +116,160 @@ func (p *parser) parse(previousPriority int) Expression {
 	}
 
 	return arg //currently unreachable except for prefix followed by EOF, which won't likely be a valid expression anyway // seems its not reachable even in that case now, huh!?
+}
+*/
+
+/*
+func (p *parser) parse(previousPriority int) Expression {
+	first := p.parseFirst()
+	//intE{1}
+
+	if p.at >= len(p.in) {
+		return first
+	}
+
+	return p.parseFollowUp(first, previousPriority)
+}
+*/
+
+func (p *parser) parseFirst() Expression {
+	first := p.current()
+
+	if first.IsPrefix() {
+		priority := lex.PrefixPriority[first.Kind]
+		if p.next() == errEOF {
+			return nil
+		}
+		prefixArg := p.parse(priority)
+		return ApplicationE{Function: Neg, Argument: prefixArg}
+	}
+
+	if first.IsFunction() {
+		var fun Expression
+		switch first.Kind {
+		case lex.TokenCROSS_FUNC:
+			fun = Sum
+		}
+		if p.next() == errEOF {
+			return fun
+		}
+		arg := p.parseFirst()
+		return ApplicationE{Function: fun, Argument: arg}
+	}
+
+	switch first.Kind {
+	case lex.TokenNUMBER:
+		value, _ := strconv.Atoi(first.Value)
+		p.next()
+		return IntE{value}
+	case lex.TokenOPEN_PARENTHESIS:
+		if p.next() == errEOF {
+			return nil
+		}
+		return p.parse(0)
+	}
+
+	return nil
+}
+
+/*
+func (p *parser) parseFollowUp(first Expression, previousPriority int) Expression {
+	//	var result Expression
+	var current lex.Token
+	for p.at < len(p.in) {
+		current = p.current()
+		if current.IsInfix() || current.IsParenthesis() {
+			for p.at < len(p.in) {
+				if current.Kind == lex.TokenCLOSE_PARENTHESIS {
+					p.next()
+					return first
+				}
+				var operation Expression
+				switch current.Kind {
+				case lex.TokenCROSS:
+					operation = Sum
+				case lex.TokenHYPHEN:
+					operation = Sub
+				case lex.TokenASTERISK:
+					operation = Mul
+				case lex.TokenFORWARD_SLASH:
+					operation = Div
+				}
+				priority := lex.InfixPriority[current.Kind]
+				if priority <= previousPriority {
+					return first
+				}
+				if p.next() == errEOF {
+					return ApplicationE{Function: operation, Argument: first}
+				}
+				result = ApplicationE{
+					Function: ApplicationE{Function: operation, Argument: first},
+					Argument: p.parse(priority),
+				}
+			}
+			//return result
+		} else {
+			fun := first
+			arg := p.parseFirst()
+			return ApplicationE{Function: fun, Argument: arg}
+		}
+	}
+	return first
+}
+*/
+
+func (p *parser) parse(previousPriority int) Expression {
+	first := p.parseFirst()
+	if p.at >= len(p.in) {
+		return first
+	}
+
+	var fun Expression
+	if p.current().IsInfix() || p.current().IsParenthesis() {
+		for p.at < len(p.in) {
+			operator := p.current()
+
+			var operation Expression
+			switch operator.Kind {
+			case lex.TokenCROSS:
+				operation = Sum
+			case lex.TokenHYPHEN:
+				operation = Sub
+			case lex.TokenASTERISK:
+				operation = Mul
+			case lex.TokenFORWARD_SLASH:
+				operation = Div
+			case lex.TokenCLOSE_PARENTHESIS: //TODO
+				p.next()
+				return first
+			}
+
+			priority := lex.InfixPriority[operator.Kind]
+			if priority <= previousPriority {
+				return first
+			}
+
+			if p.next() == errEOF {
+				return ApplicationE{Function: operation, Argument: first}
+			}
+
+			arg2 := p.parse(priority)
+
+			first = ApplicationE{
+				Function: ApplicationE{Function: operation, Argument: first},
+				Argument: arg2,
+			}
+		}
+
+		return first
+	} else { //If dealing with "Expression1 Expression2" (will likely be preceded by else if p.current().IsPostfix())
+		// arg is Expression1, now we must apply Expression1(Expression2), by means of fun = (E1=arg); arg = E2; return fun(arg) (or assign fun(arg) to arg, which is the deafult return value
+		fun = first
+		first = p.parse(0)
+		return ApplicationE{Function: fun, Argument: first} //maybe just assign it to arg and let arg be returned at the tail by default
+	}
+
+	return first //currently unreachable except for prefix followed by EOF, which won't likely be a valid expression anyway // seems its not reachable even in that case now, huh!?
 }
 
 func (p *parser) next() error {

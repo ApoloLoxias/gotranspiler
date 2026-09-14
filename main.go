@@ -5,6 +5,25 @@ import "github.com/ApoloLoxias/gotranspiler/lex"
 import "github.com/ApoloLoxias/gotranspiler/ast"
 
 func main() {
+	tokens := []lex.Token{
+		{Kind: lex.TokenNUMBER, Value: "1"},
+		{Kind: lex.TokenNUMBER, Value: "2"},
+	}
+	fmt.Println(tokens)
+	fmt.Println(ast.Parse(tokens).Pretty())
+
+	fmt.Println("\n=============\n")
+
+	tokens = []lex.Token{
+		{Kind: lex.TokenCROSS_FUNC, Value: "+$"},
+		{Kind: lex.TokenNUMBER, Value: "1"},
+		{Kind: lex.TokenNUMBER, Value: "2"},
+	}
+	fmt.Println(tokens)
+	fmt.Println(ast.Parse(tokens).Pretty())
+
+	fmt.Println("\n=================\n===================\n")
+
 	test("1+2")
 	test("11-22")
 	test("123*456")
@@ -52,8 +71,31 @@ func main() {
 	test("+$")
 	test("+$1")
 	test("(+$1)2")
-	test("(1)1")
+	test("(1)2")
+
 }
+
+/*
+func main() {
+	tokens := []lex.Token{
+		{Kind: lex.TokenNUMBER, Value: "1"},
+		{Kind: lex.TokenNUMBER, Value: "2"},
+	}
+	fmt.Println(tokens)
+	fmt.Println(ast.Parse(tokens).Pretty())
+
+	fmt.Println("\n=============\n")
+
+	tokens = []lex.Token{
+		{Kind: lex.TokenCROSS_FUNC, Value: "+$"},
+		{Kind: lex.TokenNUMBER, Value: "1"},
+		{Kind: lex.TokenNUMBER, Value: "2"},
+	}
+	fmt.Println(tokens)
+	fmt.Println(ast.Parse(tokens).Pretty())
+
+}
+*/
 
 func test(s string) {
 	fmt.Println(s)
