@@ -56,6 +56,8 @@ func (a ApplicationE) Evaluate() Expression { //TODO
 		argEval := a.Argument.Evaluate()
 		appEval := ApplicationE{Function: fEval, Argument: argEval}
 		return appEval.Evaluate()
+	case IntE:
+		return f
 	default:
 		break
 	}
