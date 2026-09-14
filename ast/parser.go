@@ -153,7 +153,10 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF {
 			return fun
 		}
-		arg := p.parseFirst()
+		arg := p.parseFirst() //returns nil on `)`
+		if arg == nil {       //Lest `)` be treated as fun's argument
+			return fun
+		}
 		return ApplicationE{Function: fun, Argument: arg}
 	}
 
