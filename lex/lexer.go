@@ -31,6 +31,11 @@ func (l *lexer) lex() {
 	lexing := lexNumOrParen(l)
 	for lexing != nil {
 		lexing = lexing(l)
+		for l.currentKind() == runeWHITESPACE {
+			if l.next() == errEOF {
+				return
+			}
+		}
 	}
 }
 
@@ -45,9 +50,6 @@ func (l *lexer) next() error {
 	}
 
 	nextRune, nextWidth := utf8.DecodeRuneInString(l.in[l.at:])
-	if unicode.IsSpace(nextRune) {
-		return l.next()
-	}
 	l.current, l.width = nextRune, nextWidth
 
 	return nil
@@ -69,6 +71,10 @@ func (l *lexer) currentKind() runeKind {
 		return runePARENTHESIS
 	}
 
+	if unicode.IsSpace(r) {
+		return runeWHITESPACE
+	}
+
 	return runeUNKNOWN
 }
 
@@ -81,6 +87,8 @@ const (
 	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$
 
 	runePARENTHESIS runeKind = "parenthesis rune"
+
+	runeWHITESPACE runeKind = "whitespace rune"
 )
 
 func isOperator(r rune) bool {

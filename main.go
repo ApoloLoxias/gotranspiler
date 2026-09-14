@@ -2,8 +2,20 @@ package main
 
 import "fmt"
 import "github.com/ApoloLoxias/gotranspiler/lex"
-import "github.com/ApoloLoxias/gotranspiler/ast"
 
+// import "github.com/ApoloLoxias/gotranspiler/ast"
+
+func main() {
+	test("1 2")
+	test("1 2 3 ")
+	test("+ 1 2 3")
+	test("+ - / *")
+	test("((2 3 ( 7 + ( ) 81    2  + - + $ /$1 2 )9")
+	test("++++--/* *")
+
+}
+
+/*
 func main() {
 	tokens := []lex.Token{
 		{Kind: lex.TokenNUMBER, Value: "1"},
@@ -68,7 +80,6 @@ func main() {
 
 	fmt.Println("\n==============\n")
 
-	test("+$")
 	test("+$1")
 	test("(+$1)2")
 	test("(1)2")
@@ -79,8 +90,12 @@ func main() {
 	test("(+$)1(2)")
 	test("(+$)(1)(2)")
 
-}
+	fmt.Println("\n==============\n")
 
+	test("1 2")
+	test("+ +")
+}
+*/
 /*
 func main() {
 	tokens := []lex.Token{
@@ -109,9 +124,9 @@ func test(s string) {
 	tokens := lex.Lex(s)
 	fmt.Println(tokens)
 
-	expr := ast.Parse(tokens)
-	fmt.Println(expr.Pretty())
-	fmt.Println(expr.Evaluate().Pretty())
+	//	expr := ast.Parse(tokens)
+	//	fmt.Println(expr.Pretty())
+	//	fmt.Println(expr.Evaluate().Pretty())
 
 	fmt.Println("------------------")
 }
