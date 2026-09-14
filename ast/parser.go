@@ -225,7 +225,9 @@ func (p *parser) parse(previousPriority int) Expression {
 	}
 
 	var fun Expression
-	if p.current().IsInfix() || p.current().IsParenthesis() {
+	//	Opening parenthesis mustn't trigger the loop, lest we update priority and arg2 := p.parse(priority), accepting `(` as the argument
+	//	if p.current().IsInfix() || p.current().IsParenthesis() {
+	if p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
 		for p.at < len(p.in) {
 			operator := p.current()
 
@@ -239,7 +241,7 @@ func (p *parser) parse(previousPriority int) Expression {
 				operation = Mul
 			case lex.TokenFORWARD_SLASH:
 				operation = Div
-			case lex.TokenCLOSE_PARENTHESIS: //TODO
+			case lex.TokenCLOSE_PARENTHESIS:
 				p.next()
 				return first
 			}
