@@ -184,6 +184,13 @@ func (p *parser) parseFirst() Expression {
 		toReturn := p.parseFirst() // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
 		// p.parseFirst() breaks "( 1 ) + - 2 * ( 8 \n )", but p.parse() breaks ""(1+0-(42/1)+1-(0))""
 		if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_PARENTHESIS { // toReturn is p.parseFirst(), because what follows "(" is a first, so we skip the infix loop, but than we don't really handle ")" in pareFirst() as we do in parse(0), so we handle it here
+			/*
+			* Note: I was going to compare handling ")" after exiting parseFirst to handling it before exiting parseFirst(i.e. in the parseFirst function)
+			* but this is already  the parseFirst function, and we are right bbefore return anyway
+			* so this is handling it inside parseFirst before returning
+			* so handling it inside parseFirst before returning or handling it outside parseFirst after returning from the call triggered by "(" is the same handling
+			* so I don't need to do this comparison
+			 */
 			p.next()
 		}
 		fmt.Println("returning toReturn:=p.parseFirst()=", toReturn)
