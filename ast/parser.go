@@ -175,7 +175,7 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF {
 			return nil
 		}
-		return p.parseFirst() // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
+		return p.parse(0) // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
 		// p.parseFirst() breaks "( 1 ) + - 2 * ( 8 \n )", but p.parse() breaks ""(1+0-(42/1)+1-(0))""
 	}
 
