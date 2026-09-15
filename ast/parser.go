@@ -149,6 +149,12 @@ func (p *parser) parseFirst() Expression {
 		switch first.Kind {
 		case lex.TokenCROSS_FUNC:
 			fun = Sum
+		case lex.TokenHYPHEN_FUNC:
+			fun = Sub
+		case lex.TokenASTERISK_FUNC:
+			fun = Mul
+		case lex.TokenFORWARD_SLASH_FUNC:
+			fun = Div
 		}
 		if p.next() == errEOF {
 			return fun
@@ -169,7 +175,8 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF {
 			return nil
 		}
-		return p.parse(0)
+		return p.parseFirst() // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
+		// p.parseFirst() breaks "( 1 ) + - 2 * ( 8 \n )", but p.parse() breaks ""(1+0-(42/1)+1-(0))""
 	}
 
 	return nil
