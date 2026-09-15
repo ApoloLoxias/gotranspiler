@@ -88,6 +88,8 @@ import (
 */
 func main() {
 	test("( 1 ) + - 2 * ( 8 \n )")
+	print("--------")
+	test("(1+0-(42/1)+1-(0))")
 }
 
 func test(s string) {
