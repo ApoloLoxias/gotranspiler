@@ -5,13 +5,102 @@ Calling parse, p.at= 0
 Iinside p.parseFirst() for p.at= 0 and p.current()= OpenParenthesis('(')
 first := p,current()= OpenParenthesis('(')
 Checking if first= OpenParenthesis('(') is prefix
+first= OpenParenthesis('(')  and is of kind  OpenParenthesis We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
+First is '(' we we'll advance and check for EOF
+Now at p.at= 1  and p.current()= NumericalToken('1')  will return toReturn:=p.parse(0), which is the non-breaking line!!!!!!!!
+Calling parse, p.at= 1
 Iinside p.parseFirst() for p.at= 1 and p.current()= NumericalToken('1')
 first := p,current()= NumericalToken('1')
 Checking if first= NumericalToken('1') is prefix
+first= NumericalToken('1')  and is of kind  NumericalToken We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
 finished executing parseFirst and assigned its return value to first= IntE(1)
 length check
 p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS= true
 Inside loop with operator = p.current() =  CloseParenthesis(')')
-IntE(1)
-IntE(1)
+returning toReturn:=p.parse(0)= IntE(1)
+finished executing parseFirst and assigned its return value to first= IntE(1)
+length check
+p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS= true
+Inside loop with operator = p.current() =  PlusToken('+')
+Operation = BuiltInFunc(Sum)
+priority= 1
+not return first= IntE(1) since priority !<=previousPriority
+advancing and checking EOF
+p.at= 4 p.current()= HyphenToken('-')
+will call arg2:=p.parse(pirority), with priority= 1
+Calling parse, p.at= 4
+Iinside p.parseFirst() for p.at= 4 and p.current()= HyphenToken('-')
+first := p,current()= HyphenToken('-')
+Checking if first= HyphenToken('-') is prefix
+It is!
+priority := PrefixPriority of first =  3
+will advance and check for EOF
+Now p.at= 5  and p.current()= NumericalToken('2')
+Will call prefixArg := p.parse(priority), for pirority= 3
+Calling parse, p.at= 5
+Iinside p.parseFirst() for p.at= 5 and p.current()= NumericalToken('2')
+first := p,current()= NumericalToken('2')
+Checking if first= NumericalToken('2') is prefix
+first= NumericalToken('2')  and is of kind  NumericalToken We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
+finished executing parseFirst and assigned its return value to first= IntE(2)
+length check
+p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS= true
+Inside loop with operator = p.current() =  AsteriskToken('*')
+Operation = BuiltInFunc(Multiplication)
+priority= 2
+return first= IntE(2) since priority <=previousPriority
+exited prefixArg := p.parse(priority) =  IntE(2)
+will return  ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}
+finished executing parseFirst and assigned its return value to first= ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}
+length check
+p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS= true
+Inside loop with operator = p.current() =  AsteriskToken('*')
+Operation = BuiltInFunc(Multiplication)
+priority= 2
+not return first= ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)} since priority !<=previousPriority
+advancing and checking EOF
+p.at= 7 p.current()= OpenParenthesis('(')
+will call arg2:=p.parse(pirority), with priority= 2
+Calling parse, p.at= 7
+Iinside p.parseFirst() for p.at= 7 and p.current()= OpenParenthesis('(')
+first := p,current()= OpenParenthesis('(')
+Checking if first= OpenParenthesis('(') is prefix
+first= OpenParenthesis('(')  and is of kind  OpenParenthesis We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
+First is '(' we we'll advance and check for EOF
+Now at p.at= 8  and p.current()= NumericalToken('8')  will return toReturn:=p.parse(0), which is the non-breaking line!!!!!!!!
+Calling parse, p.at= 8
+Iinside p.parseFirst() for p.at= 8 and p.current()= NumericalToken('8')
+first := p,current()= NumericalToken('8')
+Checking if first= NumericalToken('8') is prefix
+first= NumericalToken('8')  and is of kind  NumericalToken We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
+finished executing parseFirst and assigned its return value to first= IntE(8)
+length check
+p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS= true
+Inside loop with operator = p.current() =  CloseParenthesis(')')
+returning toReturn:=p.parse(0)= IntE(8)
+finished executing parseFirst and assigned its return value to first= IntE(8)
+length check
+returned from arg2:=p.parse(priority) call with arg2= IntE(8)
+first= ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Multiplication), Argument: ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}}, Argument: IntE(8)}
+Will return first= ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Multiplication), Argument: ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}}, Argument: IntE(8)}
+returned from arg2:=p.parse(priority) call with arg2= ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Multiplication), Argument: ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}}, Argument: IntE(8)}
+first= ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Sum), Argument: IntE(1)}, Argument: ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Multiplication), Argument: ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}}, Argument: IntE(8)}}
+Will return first= ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Sum), Argument: IntE(1)}, Argument: ApplicationE{Function: ApplicationE{Function: BuiltInFunc(Multiplication), Argument: ApplicationE{Function: BuiltInFunc(Unary negative), Argument: IntE(2)}}, Argument: IntE(8)}}
+ApplicationE{
+        Function: ApplicationE{
+                Function: BuiltInFunc(Sum),
+                Argument: IntE(1),
+        },
+        Argument: ApplicationE{
+                Function: ApplicationE{
+                        Function: BuiltInFunc(Multiplication),
+                        Argument: ApplicationE{
+                                Function: BuiltInFunc(Unary negative),
+                                Argument: IntE(2),
+                        },
+                },
+                Argument: IntE(8),
+        },
+}
+IntE(-15)
 ------------------

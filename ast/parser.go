@@ -175,7 +175,7 @@ func (p *parser) parseFirst() Expression {
 			return fun
 		}
 		fmt.Print("Now at p.at=", p.at, " p.curren()t=", p.current())
-		fmt.Println("Will call arg := p.parse(0)!!!! This is the non-breaking line!")
+		fmt.Println("Will call arg := p.parse(0)")
 		arg := p.parse(0) //returns nil on `)`
 		fmt.Println("Now exiting arg := p.parse(0)=", arg, " If arg is nill, it we should be at a parenthesis. Now, p,at=", p.at, " p.current()=", p.current())
 		if arg == nil { //Lest `)` be treated as fun's argument
@@ -187,17 +187,22 @@ func (p *parser) parseFirst() Expression {
 		return ApplicationE{Function: fun, Argument: arg}
 	}
 
+	fmt.Println("first=", first, " and is of kind ", first.Kind, "We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!")
 	switch first.Kind {
 	case lex.TokenNUMBER:
 		value, _ := strconv.Atoi(first.Value)
 		p.next()
 		return IntE{value}
 	case lex.TokenOPEN_PARENTHESIS:
+		fmt.Println("First is '(' we we'll advance and check for EOF")
 		if p.next() == errEOF {
 			return nil
 		}
-		return p.parse(0) // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
+		fmt.Println("Now at p.at=", p.at, " and p.current()=", p.current(), " will return toReturn:=p.parseFirst(), This is the breaking line!!!!!!!!")
+		toReturn := p.parseFirst() // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
 		// p.parseFirst() breaks "( 1 ) + - 2 * ( 8 \n )", but p.parse() breaks ""(1+0-(42/1)+1-(0))""
+		fmt.Println("returning toReturn:=p.parseFirst()=", toReturn)
+		return toReturn
 	}
 
 	return nil

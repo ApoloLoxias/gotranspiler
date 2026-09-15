@@ -5,9 +5,14 @@ Calling parse, p.at= 0
 Iinside p.parseFirst() for p.at= 0 and p.current()= OpenParenthesis('(')
 first := p,current()= OpenParenthesis('(')
 Checking if first= OpenParenthesis('(') is prefix
+first= OpenParenthesis('(')  and is of kind  OpenParenthesis We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
+First is ')' we we'll advance and check for EOF
+Now at p.at= 1  and p.current()= NumericalToken('1')  will return toReturn:=p.parseFirst(), This is the breaking line!!!!!!!!
 Iinside p.parseFirst() for p.at= 1 and p.current()= NumericalToken('1')
 first := p,current()= NumericalToken('1')
 Checking if first= NumericalToken('1') is prefix
+first= NumericalToken('1')  and is of kind  NumericalToken We are in a switch, and if it is open_parenthesus, we'll go to the breaking change!
+returning toReturn:=p.parseFirst()= IntE(1)
 finished executing parseFirst and assigned its return value to first= IntE(1)
 length check
 p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS= true
