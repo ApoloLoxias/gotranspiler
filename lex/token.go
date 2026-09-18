@@ -66,6 +66,8 @@ var InfixPriority = map[TokenKind]int{ //const
 	TokenFORWARD_SLASH: 2,
 }
 
+const ApplicationPriority int = 4
+
 var PrefixTokens = []TokenKind{ //const
 	TokenHYPHEN,
 }

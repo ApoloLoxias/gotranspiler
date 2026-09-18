@@ -36,6 +36,7 @@ func (p *parser) parseFirst() Expression {
 	}
 
 	if first.IsFunction() {
+		priority := lex.ApplicationPriority
 		var fun Expression
 		switch first.Kind {
 		case lex.TokenCROSS_FUNC:
@@ -50,8 +51,8 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF {
 			return fun
 		}
-		arg := p.parse(0) //returns nil on `)`
-		if arg == nil {   //Lest `)` be treated as fun's argument
+		arg := p.parse(priority) //returns nil on `)`
+		if arg == nil {          //Lest `)` be treated as fun's argument
 			//		p.next() // Get ')' out of the way. No need to check for EOF since we'll return anyway. // Adding this skip didn't work lol
 			return fun
 		}
@@ -135,9 +136,25 @@ func (p *parser) parse(previousPriority int) Expression {
 		return first
 	} else { //If dealing with "Expression1 Expression2" (will likely be preceded by else if p.current().IsPostfix())
 		// arg is Expression1, now we must apply Expression1(Expression2), by means of fun = (E1=first); arg = E2; return fun(arg)
-		fun = first
-		arg := p.parse(0)
-		return ApplicationE{Function: fun, Argument: arg} //maybe just assign it to a variable that is returned at the tail by default
+
+		for p.at < len(p.in) {
+			fun = first
+			// operator := whitespace
+
+			priority := lex.ApplicationPriority
+			if priority <= previousPriority {
+				return fun
+			}
+
+			if p.next() == errEOF {
+				return fun
+			} else if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
+				return fun
+			}
+
+			arg := p.parse(priority)
+			return ApplicationE{Function: fun, Argument: arg} //maybe just assign it to a variable that is returned at the tail by default
+		}
 	}
 
 	return first //currently unreachable except for prefix followed by EOF, which won't likely be a valid expression anyway // compiler says it is not reachable at all,huh!? //Currently using a if-else (posibly an if-else if-else when dealing with suffixes) which returns on both if and else. Makes sense that this is unreachable// SO the thing about assigning a var on else arm and letting it be returned  at the tail would make sense when implementing suffixes if suffixes and applications have semantically simillar return values? // I hope that doesn't happen

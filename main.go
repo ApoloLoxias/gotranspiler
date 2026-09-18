@@ -68,9 +68,10 @@ func main() {
 	test("(*$)3")
 	test("/$(4)")
 	println()
-	test("+$1 -2")
+	test("+$1 (-2)")
 	test("(+$1)2")
 	test("/$ 17(8)")
+	test("- *$1 2 + 3")
 
 	printTitle("Ints as functions")
 	test("(1)2")
