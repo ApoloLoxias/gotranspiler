@@ -35,7 +35,8 @@ func (p *parser) parseFirst() Expression {
 		return ApplicationE{Function: Neg, Argument: prefixArg}
 	}
 
-	if first.IsFunction() {
+	//A Application branch ignroed for now
+	/*if first.IsFunction() {
 		priority := lex.ApplicationPriority
 		var fun Expression
 		switch first.Kind {
@@ -57,7 +58,7 @@ func (p *parser) parseFirst() Expression {
 			return fun
 		}
 		return ApplicationE{Function: fun, Argument: arg}
-	}
+	} */
 
 	switch first.Kind {
 	case lex.TokenNUMBER:
@@ -95,7 +96,7 @@ func (p *parser) parse(previousPriority int) Expression {
 	}
 
 	// Now we will parse the second term, i.e. the infix/sufix
-	var fun Expression
+	// var fun Expression // declaration to use inside application loop
 	//	Opening parenthesis mustn't trigger the loop, lest we update priority and arg2 := p.parse(priority), accepting `(` as the argument
 	if p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS { //start infix loop. When implementing sufixes, may want to have an aditional arm for the if-else (i.e. if-else if-else)
 		for p.at < len(p.in) {
@@ -134,7 +135,8 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 
 		return first
-	} else { //If dealing with "Expression1 Expression2" (will likely be preceded by else if p.current().IsPostfix())
+	} //Aplication branch ignored for now
+	/* else { //If dealing with "Expression1 Expression2" (will likely be preceded by else if p.current().IsPostfix())
 		// arg is Expression1, now we must apply Expression1(Expression2), by means of fun = (E1=first); arg = E2; return fun(arg)
 
 		for p.at < len(p.in) {
@@ -155,8 +157,9 @@ func (p *parser) parse(previousPriority int) Expression {
 			arg := p.parse(priority)
 			return ApplicationE{Function: fun, Argument: arg} //maybe just assign it to a variable that is returned at the tail by default
 		}
-	}
+	} */
 
+	// will be unreachable if application branch is accessed via else statetametn
 	return first //currently unreachable except for prefix followed by EOF, which won't likely be a valid expression anyway // compiler says it is not reachable at all,huh!? //Currently using a if-else (posibly an if-else if-else when dealing with suffixes) which returns on both if and else. Makes sense that this is unreachable// SO the thing about assigning a var on else arm and letting it be returned  at the tail would make sense when implementing suffixes if suffixes and applications have semantically simillar return values? // I hope that doesn't happen
 }
 
