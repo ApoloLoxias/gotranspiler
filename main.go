@@ -10,6 +10,10 @@ import (
 )
 
 func main() {
+	printTitle("associativity")
+	test("1-2-3")
+	test("2**3**4")
+
 	printTitle("basic infix")
 	test("1")
 	test("1+2")

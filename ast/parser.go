@@ -120,7 +120,8 @@ func (p *parser) parse(previousPriority int) Expression {
 			}
 
 			priority := lex.InfixPriority[operator.Kind]
-			if priority <= previousPriority { // <= for left-associativity; < for right-associativity
+			associativity := getAssociativity(operation.(BuiltInFunc))
+			if priority < previousPriority || (associativity == leftAssociativity && priority == previousPriority) { // <= for left-associativity; < for right-associativity
 				return first
 			}
 
@@ -196,5 +197,21 @@ func (p *parser) current() lex.Token {
 }
 
 var errEOF = errors.New("EOF")
+
+type associativity string
+
+const (
+	rightAssociativity associativity = "Right-associativity"
+	leftAssociativity  associativity = "left-associativity"
+)
+
+func getAssociativity(operation BuiltInFunc) associativity {
+	switch operation.Name {
+	case Pow.Name:
+		return rightAssociativity
+	default:
+		return leftAssociativity
+	}
+}
 
 /* ------------------------- */
