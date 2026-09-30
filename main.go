@@ -17,12 +17,14 @@ func main() {
 	test("1000*12345")
 	test("4/2")
 	test("5/2")
+	test("2**3")
 
 	printTitle("Partial infix")
 	test("1+")
 	test("23-")
 	test("4*")
 	test("0/")
+	test("2**")
 
 	printTitle("Multiple infixes")
 	test("1+3+2")
@@ -33,6 +35,7 @@ func main() {
 	test("1*2+3*4")
 	test("1+2*3*4+5")
 	test("1-2+4")
+	test("1-2**3*4")
 
 	printTitle("Prifinx '-'")
 	test("-1")

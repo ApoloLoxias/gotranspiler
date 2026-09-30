@@ -112,6 +112,8 @@ func (p *parser) parse(previousPriority int) Expression {
 				operation = Mul
 			case lex.TokenFORWARD_SLASH:
 				operation = Div
+			case lex.TokenASTERISK_ASTERISK:
+				operation = Pow
 			case lex.TokenCLOSE_PARENTHESIS:
 				p.next()
 				return first

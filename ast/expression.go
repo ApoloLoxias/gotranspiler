@@ -3,6 +3,7 @@ package ast
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -202,4 +203,31 @@ func NegBuiltIn(x Expression) (Expression, error) {
 	default:
 		return nil, errors.New("Neg typeError")
 	}
+}
+
+var Pow = BuiltInFunc{Name: "Integer potentiation", Func: PowBuiltIn} //const
+func PowBuiltIn(x Expression) (Expression, error) {
+	switch X := x.(type) {
+	case IntE:
+		f := BuiltInFunc{
+			Name: fmt.Sprintf("Pow%d", X.Value),
+			Func: func(y Expression) (Expression, error) {
+				switch Y := y.(type) {
+				case IntE:
+					return IntE{Value: intPow(X.Value, Y.Value)}, nil
+				default:
+					return nil, errors.New("curried Pow typeErro")
+				}
+			},
+		}
+		return f, nil
+	default:
+		return nil, errors.New("Pow typeError")
+	}
+}
+func intPow(b, e int) int { //consider making this safe and eficient later
+	B := float64(b)
+	E := float64(e)
+	BE := math.Pow(B, E)
+	return int(BE)
 }

@@ -20,6 +20,8 @@ const (
 	TokenASTERISK      TokenKind = "AsteriskToken"
 	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
 
+	TokenASTERISK_ASTERISK TokenKind = "DoubleAsteriskToken"
+
 	TokenCROSS_FUNC         TokenKind = "PlusFuncToken"
 	TokenHYPHEN_FUNC        TokenKind = "SubFuncToken"
 	TokenASTERISK_FUNC      TokenKind = "MulFuncToken"
@@ -57,6 +59,7 @@ var InfixTokens = []TokenKind{ //const
 	TokenHYPHEN,
 	TokenASTERISK,
 	TokenFORWARD_SLASH,
+	TokenASTERISK_ASTERISK,
 }
 
 var InfixPriority = map[TokenKind]int{ //const
@@ -64,9 +67,11 @@ var InfixPriority = map[TokenKind]int{ //const
 	TokenHYPHEN:        1,
 	TokenASTERISK:      2,
 	TokenFORWARD_SLASH: 2,
+
+	TokenASTERISK_ASTERISK: 4,
 }
 
-const ApplicationPriority int = 4
+// const ApplicationPriority int = 4 // when reintroducing application, consider asterisk_asterisk: 4 and application: 5
 
 var PrefixTokens = []TokenKind{ //const
 	TokenHYPHEN,
@@ -75,6 +80,11 @@ var PrefixTokens = []TokenKind{ //const
 var PrefixPriority = map[TokenKind]int{ //const
 	TokenHYPHEN: 3,
 }
+
+var FirstTokens = append( //const
+	TerminalTokens,
+	PrefixTokens...,
+)
 
 func (t Token) String() string {
 	return fmt.Sprintf("%s('%s')", t.Kind, t.Value)
@@ -107,4 +117,8 @@ func (t Token) IsInfix() bool {
 
 func (t Token) IsPrefix() bool {
 	return t.IsOfKind(PrefixTokens...)
+}
+
+func (t Token) IsFirst() bool {
+	return t.IsOfKind(FirstTokens...)
 }

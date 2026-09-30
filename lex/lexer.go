@@ -197,6 +197,8 @@ func lexSymbol(l *lexer) lexingFunction {
 		token.Kind = TokenASTERISK
 	case "/":
 		token.Kind = TokenFORWARD_SLASH
+	case "**":
+		token.Kind = TokenASTERISK_ASTERISK
 
 	case "+$":
 		token.Kind = TokenCROSS_FUNC
