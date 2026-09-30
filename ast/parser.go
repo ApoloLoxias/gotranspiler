@@ -98,7 +98,7 @@ func (p *parser) parse(previousPriority int) Expression {
 	// Now we will parse the second term, i.e. the infix/sufix
 	// var fun Expression // declaration to use inside application loop
 	//	Opening parenthesis mustn't trigger the loop, lest we update priority and arg2 := p.parse(priority), accepting `(` as the argument
-	if p.current().IsInfix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS { //start infix loop. When implementing sufixes, may want to have an aditional arm for the if-else (i.e. if-else if-else)
+	if p.current().IsInfix() || p.current().IsSufix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS { //start infix loop. When implementing sufixes, may want to have an aditional arm for the if-else (i.e. if-else if-else)
 		for p.at < len(p.in) {
 			operator := p.current()
 
@@ -114,18 +114,35 @@ func (p *parser) parse(previousPriority int) Expression {
 				operation = Div
 			case lex.TokenASTERISK_ASTERISK:
 				operation = Pow
+
+			case lex.TokenEXCLAMATION:
+				operation = Fac
+
 			case lex.TokenCLOSE_PARENTHESIS:
 				p.next()
 				return first
 			}
 
-			priority := lex.InfixPriority[operator.Kind]
+			var priority int //the following if-chain is exhaustive, since the for loop accepts infixes, suffixes and ")", and ")" has already been returned
+			if p.current().IsInfix() {
+				priority = lex.InfixPriority[operator.Kind]
+			}
+			if p.current().IsSufix() {
+				priority = lex.SufixPriority[operator.Kind]
+			}
+
 			associativity := getAssociativity(operation.(BuiltInFunc))
 			if priority < previousPriority || (associativity == leftAssociativity && priority == previousPriority) { // <= for left-associativity; < for right-associativity
 				return first
 			}
 
-			if p.next() == errEOF { // No second operand, so sufix instead of infix: "first opeator". When implementing actual sufixes will probably not be inside this arm of the outer if-else, and leave this just for partial application of incomplete infix expressions/tokens that are ordinarily infixes in suffix position
+			if p.current().IsSufix() {
+				p.next()
+				first = ApplicationE{Function: operation, Argument: first}
+				continue
+			}
+
+			if p.next() == errEOF { //p.current is an infix -- partial application branch --, or is prefix before EOF, about which we don't care
 				return ApplicationE{Function: operation, Argument: first}
 			}
 

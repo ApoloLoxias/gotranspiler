@@ -20,6 +20,8 @@ const (
 	TokenASTERISK      TokenKind = "AsteriskToken"
 	TokenFORWARD_SLASH TokenKind = "ForwardSlashToken"
 
+	TokenEXCLAMATION TokenKind = "ExclamationPointToken"
+
 	TokenASTERISK_ASTERISK TokenKind = "DoubleAsteriskToken"
 
 	TokenCROSS_FUNC         TokenKind = "PlusFuncToken"
@@ -81,6 +83,14 @@ var PrefixPriority = map[TokenKind]int{ //const
 	TokenHYPHEN: 3,
 }
 
+var SufixTokens = []TokenKind{ //const
+	TokenEXCLAMATION,
+}
+
+var SufixPriority = map[TokenKind]int{ //const
+	TokenEXCLAMATION: 5, //consider 6 if application gets bumped to 5
+}
+
 var FirstTokens = append( //const
 	TerminalTokens,
 	PrefixTokens...,
@@ -117,6 +127,10 @@ func (t Token) IsInfix() bool {
 
 func (t Token) IsPrefix() bool {
 	return t.IsOfKind(PrefixTokens...)
+}
+
+func (t Token) IsSufix() bool {
+	return t.IsOfKind(SufixTokens...)
 }
 
 func (t Token) IsFirst() bool {

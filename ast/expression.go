@@ -231,3 +231,30 @@ func intPow(b, e int) int { //consider making this safe and eficient later
 	BE := math.Pow(B, E)
 	return int(BE)
 }
+
+var Fac = BuiltInFunc{Name: "Integer factorial", Func: FacBuiltIn} //const
+func FacBuiltIn(x Expression) (Expression, error) {
+	switch X := x.(type) {
+	case IntE:
+		if X.Value < 0 {
+			return nil, errors.New("Factorial of negative number error")
+		}
+		f := func(y int) int {
+			z := y
+			for {
+				if y == 0 {
+					return 1
+				}
+				if y == 1 {
+					return z
+				}
+				y = y - 1
+				z = z * y
+			}
+		}
+		return IntE{f(X.Value)}, nil
+	default:
+		return nil, errors.New("Fac typeError")
+	}
+
+}
