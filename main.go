@@ -16,7 +16,7 @@ func main() {
 	test("2!")
 	test("3! !")
 	test("1+2!")
-	test("1+2!*3")
+	test("1 + 2 ! * 3")
 
 	printTitle("associativity")
 	test("1-2-3")
