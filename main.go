@@ -55,7 +55,6 @@ func main() {
 	test("-1*2")
 
 	printTitle("Parenthesis")
-	test("(1")
 	test("(1)")
 	test("(-1)")
 	test("-(1)")
@@ -111,7 +110,10 @@ func test(s string) {
 	tokens := lex.Lex(s)
 	fmt.Println(tokens)
 
-	expr := ast.Parse(tokens)
+	expr, err := ast.Parse(tokens)
+	if err != nil {
+		fmt.Println("Parser error: ", err)
+	}
 	fmt.Println(expr.Pretty())
 	fmt.Println(expr.Evaluate().Pretty())
 
