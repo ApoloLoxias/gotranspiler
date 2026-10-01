@@ -2,9 +2,15 @@ package lex
 
 import "fmt"
 
+/* ---- TOKEN DEFINITION AND KIND ENUMERATION --- */
+
 type Token struct {
 	Value string
 	Kind  TokenKind
+}
+
+func (t Token) String() string {
+	return fmt.Sprintf("%s('%s')", t.Kind, t.Value)
 }
 
 type TokenKind string // Enum
@@ -31,11 +37,16 @@ const (
 
 	TokenOPEN_PARENTHESIS  TokenKind = "OpenParenthesis"
 	TokenCLOSE_PARENTHESIS TokenKind = "CloseParenthesis"
+
+	TokenUNDEFINED_SYMBOL TokenKind = "UndefinedSymbolToken"
 )
 
 var EOFtoken = Token{"EOF", TokenEOF} //const
 var SOFtoken = Token{"SOF", TokenSOF} //const
 
+/* --- TOKEN CLASSIFICATION --- */
+
+// A single terminal is a valid expression
 var TerminalTokens = []TokenKind{ //const
 	TokenNUMBER,
 	TokenCROSS_FUNC,
@@ -83,23 +94,25 @@ var PrefixPriority = map[TokenKind]int{ //const
 	TokenHYPHEN: 3,
 }
 
-var SufixTokens = []TokenKind{ //const
+var SuffixTokens = []TokenKind{ //const
 	TokenEXCLAMATION,
 }
 
-var SufixPriority = map[TokenKind]int{ //const
+var SuffixPriority = map[TokenKind]int{ //const
 	TokenEXCLAMATION: 5, //consider 6 if application gets bumped to 5
 }
 
-var FirstTokens = append( //const
-	TerminalTokens,
-	PrefixTokens...,
-)
-
-func (t Token) String() string {
-	return fmt.Sprintf("%s('%s')", t.Kind, t.Value)
+// Firsts can start an expression
+func defineFirstTokens() []TokenKind {
+	var FirstTokens2 = make([]TokenKind, 0, len(PrefixTokens)+len(TerminalTokens))
+	var FirstTokens1 = append(FirstTokens2, PrefixTokens...)
+	var FirstTokens0 = append(FirstTokens1, TerminalTokens...)
+	return FirstTokens0
 }
 
+var FirstTokens []TokenKind = defineFirstTokens() //const
+
+// Classification checkers
 func (t Token) IsOfKind(kinds ...TokenKind) bool {
 	for _, kind := range kinds {
 		if t.Kind == kind {
@@ -129,10 +142,31 @@ func (t Token) IsPrefix() bool {
 	return t.IsOfKind(PrefixTokens...)
 }
 
-func (t Token) IsSufix() bool {
-	return t.IsOfKind(SufixTokens...)
+func (t Token) IsSuffix() bool {
+	return t.IsOfKind(SuffixTokens...)
 }
 
 func (t Token) IsFirst() bool {
 	return t.IsOfKind(FirstTokens...)
+}
+
+/* --- ASSOCIATIVITY --- */
+
+type associativity string
+
+const (
+	LeftAssociativity  associativity = "left"
+	RightAssociativity associativity = "right"
+)
+
+var rightAssociatives = map[TokenKind]associativity{ //left associativity by default
+	TokenASTERISK_ASTERISK: RightAssociativity,
+}
+
+func AssociativityOf(kind TokenKind) associativity {
+	_, ok := rightAssociatives[kind]
+	if ok {
+		return RightAssociativity
+	}
+	return LeftAssociativity
 }

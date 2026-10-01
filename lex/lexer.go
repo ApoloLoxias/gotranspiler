@@ -6,14 +6,7 @@ import (
 	"unicode/utf8"
 )
 
-type lexer struct {
-	in      string
-	out     []Token
-	at      int
-	current rune
-	width   int
-	length  int
-}
+/* --- ENTRY POINT --- */
 
 func Lex(s string) []Token {
 	l := lexer{s, []Token{}, 0, utf8.RuneError, 0, len(s)}
@@ -25,6 +18,22 @@ func Lex(s string) []Token {
 
 	l.lex()
 	return l.out
+}
+
+/* --- LEXER STATE AND CONTROL FLOW--- */
+
+type lexer struct {
+	//input and output
+	in  string
+	out []Token //in the future, channel (lex/parse simulteneously)
+
+	//cursor
+	at      int
+	current rune
+
+	//cached values for multiple access
+	width  int
+	length int
 }
 
 func (l *lexer) lex() {
@@ -39,7 +48,7 @@ func (l *lexer) lex() {
 	}
 }
 
-/* -------------------------- */
+var errEOF = errors.New("end of file")
 
 func (l *lexer) next() error {
 	l.at = l.at + l.width
@@ -55,7 +64,25 @@ func (l *lexer) next() error {
 	return nil
 }
 
-var errEOF = errors.New("end of file")
+func (l *lexer) produceToken(start int, width int, kind TokenKind) {
+	token := Token{Value: l.in[start : start+width], Kind: kind}
+	l.out = append(l.out, token)
+}
+
+/* --- RUNE CLASSIFICATION --- */
+
+type runeKind string
+
+const (
+	runeUNKNOWN runeKind = "unkown rune"
+
+	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
+	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$!
+
+	runePARENTHESIS runeKind = "parenthesis rune"
+
+	runeWHITESPACE runeKind = "whitespace rune"
+)
 
 func (l *lexer) currentKind() runeKind {
 	r := l.current
@@ -77,20 +104,6 @@ func (l *lexer) currentKind() runeKind {
 
 	return runeUNKNOWN
 }
-
-type runeKind string
-
-const (
-	runeUNKNOWN runeKind = "unkown rune"
-
-	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
-	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$!
-
-	runePARENTHESIS runeKind = "parenthesis rune"
-
-	runeWHITESPACE runeKind = "whitespace rune"
-)
-
 func isOperator(r rune) bool {
 	for _, Rune := range operatorCharacters {
 		if r == Rune {
@@ -116,25 +129,18 @@ var (
 	runeCLOSE_PARENTHESIS = rune(")"[0])
 )
 
-func (l *lexer) produceToken(start int, width int, kind TokenKind) {
-	token := Token{Value: l.in[start : start+width], Kind: kind}
-	l.out = append(l.out, token)
-}
-
-/* -------------------------- */
+/* --- LEXING FUNCTIONS --- */
 
 type lexingFunction func(*lexer) lexingFunction
 
 func lexDecimal(l *lexer) lexingFunction {
 	startAt := l.at
 	totalWidth := 0
-	var err error = nil
 
 	for l.currentKind() == runeDIGIT {
 		totalWidth += l.width
-		err = l.next()
 
-		if err == errEOF {
+		if l.next() == errEOF {
 			l.produceToken(startAt, totalWidth, TokenNUMBER)
 			return nil
 		}
@@ -146,32 +152,8 @@ func lexDecimal(l *lexer) lexingFunction {
 	return lexSymbol
 }
 
-/*
-func lexSymbol(l *lexer) lexingFunction {
-	switch l.current {
-	case rune(runeCROSS):
-		l.produceToken(l.at, l.width, TokenCROSS)
-	case rune(runeHYPHEN):
-		l.produceToken(l.at, l.width, TokenHYPHEN)
-	case rune(runeASTERISK):
-		l.produceToken(l.at, l.width, TokenASTERISK)
-	case rune(runeFORWARD_SLASH):
-		l.produceToken(l.at, l.width, TokenFORWARD_SLASH)
-	case runeCLOSE_PARENTHESIS:
-		l.produceToken(l.at, l.width, TokenCLOSE_PARENTHESIS)
-	case runeOPEN_PARENTHESIS: // This one should probably never happen on valid code
-		l.produceToken(l.at, l.width, TokenOPEN_PARENTHESIS)
-	}
-
-	err := l.next()
-
-	if err == errEOF {
-		return nil
-	}
-	return lexNumOrParen
-}
-*/
-
+// Currently matches all consecutive symbols into a single rune.
+// May want to change after definition of syntax
 func lexSymbol(l *lexer) lexingFunction {
 	var chars []rune
 	var err error
@@ -214,13 +196,8 @@ func lexSymbol(l *lexer) lexingFunction {
 	case "/$":
 		token.Kind = TokenFORWARD_SLASH_FUNC
 
-	case "(":
-		token.Kind = TokenOPEN_PARENTHESIS
-	case ")":
-		token.Kind = TokenCLOSE_PARENTHESIS
-
 	default:
-		token.Kind = TokenKind("UndefinedSymbolToken")
+		token.Kind = TokenUNDEFINED_SYMBOL
 	}
 
 	l.out = append(l.out, token)
@@ -251,5 +228,5 @@ func lexNumOrParen(l *lexer) lexingFunction {
 		return lexNumOrParen
 	}
 
-	return lexDecimal
+	return lexDecimal //i.e. l.currentKind() != PARENTHESIS
 }

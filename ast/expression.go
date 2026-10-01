@@ -7,15 +7,23 @@ import (
 	"strings"
 )
 
+// Fundamental AST nodes
 type Expression interface {
+	//Evaluate reduces the ast to an equivalent, simplified one
 	Evaluate() Expression
+
 	String() string
-	pretty(int, int) string
-	Pretty(...int) string
+	pretty(int, int) string //helper for Pretty
+	Pretty(...int) string   //variadic as a trick for allowing a default value
 }
 
-/* --------------------------- */
+// pretty-printing configuration
+const defaultTabStop = 8
 
+/* --- Primitive Expressions ---*/
+// A primitive is interpreted as a constant function that allways returns itself
+
+// Integer literals
 type IntE struct {
 	Value int
 }
@@ -33,15 +41,15 @@ func (i IntE) pretty(int, int) string {
 }
 
 func (i IntE) Pretty(tabSpace ...int) string {
-	tab := 8
+	tab := defaultTabStop
 	if len(tabSpace) > 0 {
 		tab = tabSpace[0]
 	}
 	return i.pretty(tab, 0)
 }
 
-//
-
+// Function application
+// includes arithmetic expressions, be they prefix, infix or postfix operations
 type ApplicationE struct {
 	Function Expression
 	Argument Expression
@@ -77,21 +85,21 @@ func (a ApplicationE) pretty(tabSpace, lvl int) string {
 }
 
 func (a ApplicationE) Pretty(tabsSpace ...int) string {
-	tab := 8
+	tab := defaultTabStop
 	if len(tabsSpace) > 0 {
 		tab = tabsSpace[0]
 	}
 	return a.pretty(tab, 0)
 }
 
-//
-
+// Native/standard/pre-defined functions
+// Include arithmetic operators, be they infix, suffix or prefix
 type BuiltInFunc struct {
-	Name string
+	Name string //for human-friendly display
 	Func func(Expression) (Expression, error)
 }
 
-func (f BuiltInFunc) Evaluate() Expression { //TODO
+func (f BuiltInFunc) Evaluate() Expression {
 	return f
 }
 
@@ -104,12 +112,16 @@ func (f BuiltInFunc) pretty(int, int) string {
 }
 
 func (f BuiltInFunc) Pretty(tabSpace ...int) string {
-	tab := 8
+	tab := defaultTabStop
 	if len(tabSpace) > 0 {
 		tab = tabSpace[0]
 	}
 	return f.pretty(tab, 0)
 }
+
+/* --- BUILTIN OPERATORS --- */
+// Binary and infix operators represent curried fucntions
+// Those functions may be partially applied
 
 var Sum = BuiltInFunc{Name: "Sum", Func: SumBuiltIn} //const
 func SumBuiltIn(x Expression) (Expression, error) {

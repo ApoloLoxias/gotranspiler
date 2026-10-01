@@ -2,6 +2,7 @@ package ast
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/ApoloLoxias/gotranspiler/lex"
@@ -9,20 +10,39 @@ import (
 
 /* --------EXPORTS---------- */
 
-func Parse(tokens []lex.Token) Expression {
-	parser := parser{tokens, nil, 0}
-	return parser.parse(0)
+func Parse(tokens []lex.Token) (Expression, error) {
+	if len(tokens) == 0 {
+		return nil, fmt.Errorf("parser error: no tokens were input")
+	}
+
+	parser := parser{tokens, 0}
+	expr := parser.parse(0)
+
+	if parser.at < len(parser.in) {
+		return expr,
+			fmt.Errorf(
+				"parsing stoped at token %v, at index %d",
+				parser.current(),
+				parser.at,
+			)
+	}
+
+	if expr == nil {
+		return nil, fmt.Errorf("malformed/unparsable stream of tokens: %v", tokens)
+	}
+
+	return expr, nil
 }
 
 /* ----MAIN PARSING LOGIC--- */
 
 type parser struct {
-	in  []lex.Token
-	out Expression
-	at  int
+	in []lex.Token
+	at int
 }
 
 // The First token of an expression is special because there is no token before it
+// Returns nil if called at a token an expression is not allowed to start with
 func (p *parser) parseFirst() Expression {
 	first := p.current()
 
@@ -32,6 +52,8 @@ func (p *parser) parseFirst() Expression {
 			return nil
 		}
 		prefixArg := p.parse(priority)
+		//consider a break guard for nil prefixArg if we want a lone
+		//prefix to be parsed as its unaplied function
 		return ApplicationE{Function: Neg, Argument: prefixArg}
 	}
 
@@ -69,8 +91,13 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF {
 			return nil
 		}
-		toReturn := p.parseFirst() // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
+		// consider the implications of p.parse(0) vs p.pareFirst() when reimplementing function application
+		toReturn := p.parse(0) // An expression that follows "(" is a standalone expression and its first token must be a First. This type of call was why I separated parseFirst() into its own subfunction in the first place, so I should not call p.parse(0) here!
 		// p.parseFirst() breaks "( 1 ) + - 2 * ( 8 \n )", but p.parse() breaks ""(1+0-(42/1)+1-(0))""
+		if toReturn == nil { //propagates failed grouping (i.e. what comes after `(` can't start an expression, to allow us to parse(0) rather than parseFirst()
+			return nil
+		}
+
 		if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_PARENTHESIS { // toReturn is p.parseFirst(), because what follows "(" is a first, so we skip the infix loop, but than we don't really handle ")" in pareFirst() as we do in parse(0), so we handle it here
 			/*
 			* Note: I was going to compare handling ")" after exiting parseFirst to handling it before exiting parseFirst(i.e. in the parseFirst function)
@@ -80,25 +107,39 @@ func (p *parser) parseFirst() Expression {
 			* so I don't need to do this comparison
 			 */
 			p.next()
+			return toReturn
 		}
-		return toReturn
+		// was return toReturn
+		// tucked return to Return on the block/conditional abocee
+		// Parse's trailing token cehck won't catch unbalacned "("
+		// The following return is accessed by ending the input before closing all "("
+		return nil
 	}
 
+	// return for:
+	//tokens that can't start expressions/aren't firsts
+	//closing parenthesis that weren't opened
+	//tokens we can't handle (yet)
 	return nil // Falls through if First is not a Prefix, a Function, a Number, nor an TokenOPEN_PARENTHESIS -> In other words, if First is not a valid First token (i.e. an infix)
 	// I guess such a fall-through could be used to assign different behaviour to non-first tokens in first position, i.e. let infixes be functionalized in first position even if they are not followed by $
 }
 
+// returns nil if it can't parse
+// Parse returns an error when parse return nil
 func (p *parser) parse(previousPriority int) Expression {
 	//First token must be a prefix or a standalone expression (or ´(´)
 	first := p.parseFirst()
-	if p.at >= len(p.in) {
+	if first == nil { //propagate the parsing failure
+		return nil
+	}
+	if p.at >= len(p.in) { //nothing after first. It is the whole expression
 		return first
 	}
 
 	// Now we will parse the second term, i.e. the infix/sufix
 	// var fun Expression // declaration to use inside application loop
 	//	Opening parenthesis mustn't trigger the loop, lest we update priority and arg2 := p.parse(priority), accepting `(` as the argument
-	if p.current().IsInfix() || p.current().IsSufix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS { //start infix loop. When implementing sufixes, may want to have an aditional arm for the if-else (i.e. if-else if-else)
+	if p.current().IsInfix() || p.current().IsSuffix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS { //start infix loop. When implementing sufixes, may want to have an aditional arm for the if-else (i.e. if-else if-else)
 		for p.at < len(p.in) {
 			operator := p.current()
 
@@ -119,7 +160,9 @@ func (p *parser) parse(previousPriority int) Expression {
 				operation = Fac
 
 			case lex.TokenCLOSE_PARENTHESIS:
-				p.next()
+				// p.next()
+				// not advancing so as not to desynch nested
+				// groups when parseFirst consumes `)`
 				return first
 			}
 
@@ -127,21 +170,22 @@ func (p *parser) parse(previousPriority int) Expression {
 			if p.current().IsInfix() {
 				priority = lex.InfixPriority[operator.Kind]
 			}
-			if p.current().IsSufix() {
-				priority = lex.SufixPriority[operator.Kind]
+			if p.current().IsSuffix() {
+				priority = lex.SuffixPriority[operator.Kind]
 			}
 
-			associativity := getAssociativity(operation.(BuiltInFunc))
-			if priority < previousPriority || (associativity == leftAssociativity && priority == previousPriority) { // <= for left-associativity; < for right-associativity
+			associativity := lex.AssociativityOf(operator.Kind)
+			if priority < previousPriority || (associativity == lex.LeftAssociativity && priority == previousPriority) { // <= for left-associativity; < for right-associativity
 				return first
 			}
 
-			if p.current().IsSufix() {
+			if p.current().IsSuffix() {
 				p.next()
 				first = ApplicationE{Function: operation, Argument: first}
 				continue
 			}
 
+			//partial application of infix operator
 			if p.next() == errEOF { //p.current is an infix -- partial application branch --, or is prefix before EOF, about which we don't care
 				return ApplicationE{Function: operation, Argument: first}
 			}
@@ -195,6 +239,8 @@ func (p *parser) next() error {
 	return nil
 }
 
+// Note: peekAhead, peekBehind not currently used, but kept as they are usefull
+// tp have arround in the codebase when making changes and debugging
 func (p *parser) peekAhead() lex.Token {
 	if p.at >= len(p.in)-1 {
 		return lex.EOFtoken
@@ -202,6 +248,7 @@ func (p *parser) peekAhead() lex.Token {
 	return p.in[p.at+1]
 }
 
+// Note: see peekAhead
 func (p *parser) peekBehind() lex.Token {
 	if p.at <= 0 {
 		return lex.SOFtoken
@@ -209,26 +256,10 @@ func (p *parser) peekBehind() lex.Token {
 	return p.in[p.at-1]
 }
 
+// Doens't range check p.at vs len(p.in) and lets the caller guarantee safety
+// Implemented so to avoid redundant checks with p.next()
 func (p *parser) current() lex.Token {
 	return p.in[p.at]
 }
 
 var errEOF = errors.New("EOF")
-
-type associativity string
-
-const (
-	rightAssociativity associativity = "Right-associativity"
-	leftAssociativity  associativity = "left-associativity"
-)
-
-func getAssociativity(operation BuiltInFunc) associativity {
-	switch operation.Name {
-	case Pow.Name:
-		return rightAssociativity
-	default:
-		return leftAssociativity
-	}
-}
-
-/* ------------------------- */
