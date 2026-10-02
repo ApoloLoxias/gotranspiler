@@ -10,6 +10,9 @@ import (
 )
 
 func main() {
+	printTitle("parenthesis skipping")
+	test("-(1+2)")
+
 	printTitle("postfix")
 	test("0!")
 	test("1!")
