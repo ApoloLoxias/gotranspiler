@@ -37,6 +37,24 @@ func assertTokenKinds(t *testing.T, source string, want []TokenKind) {
 
 }
 
+func extractTokenValues(tokens []Token) []string {
+	result := make([]string, 0, len(tokens))
+	for _, token := range tokens {
+		result = append(result, token.Value)
+	}
+	return result
+}
+
+func assertTokenValues(t *testing.T, source string, want []string) {
+	t.Helper()
+	got := extractTokenValues(Lex(source))
+
+	if len(got) != len(want) {
+		t.Errorf("Lex(%s) gets %d tokens: `%v`, want %d tijebs: `%v`", source, len(got), got, len(want), want)
+	}
+
+}
+
 func TestKindsForLexTokens(t *testing.T) {
 	type test struct {
 		source string
@@ -98,5 +116,22 @@ func TestKindsForLexTokens(t *testing.T) {
 				},
 			)
 		}
+	}
+}
+
+func TestValuesForIntegers(t *testing.T) {
+	tests := []struct {
+		source string
+		values []string
+	}{
+		{"1", []string{"1"}},
+		{"3456789876542456789098765", []string{"3456789876542456789098765"}},
+	}
+
+	for _, test := range tests {
+		testValues := func(t *testing.T) {
+			assertTokenValues(t, test.source, test.values)
+		}
+		t.Run(test.source, testValues)
 	}
 }
