@@ -2,7 +2,7 @@ package lex
 
 import (
 	//	"errors"
-	//	"strings"
+	"strings"
 	"testing"
 	// "unicode/utf8"
 )
@@ -105,6 +105,60 @@ func TestKindsForLexTokens(t *testing.T) {
 				}},
 			},
 		},
+		{
+			"prefix",
+			[]test{
+				{
+					"-1",
+					[]TokenKind{
+						TokenHYPHEN,
+						TokenNUMBER,
+					},
+				},
+				{
+					"- - 2",
+					[]TokenKind{
+						TokenHYPHEN,
+						TokenHYPHEN,
+						TokenNUMBER,
+					},
+				},
+				{
+					"- 1 + - 7 - 3 * - 4",
+					[]TokenKind{
+						TokenHYPHEN,
+						TokenNUMBER,
+						TokenCROSS,
+						TokenHYPHEN,
+						TokenNUMBER,
+						TokenHYPHEN,
+						TokenNUMBER,
+						TokenASTERISK,
+						TokenHYPHEN,
+						TokenNUMBER,
+					},
+				},
+			},
+		},
+		{
+			"postfixes",
+			[]test{
+				{"1!", []TokenKind{TokenNUMBER, TokenEXCLAMATION}},
+				{"0! !", []TokenKind{TokenNUMBER, TokenEXCLAMATION, TokenEXCLAMATION}},
+				{
+					"- 1 ! + 4 ! !",
+					[]TokenKind{
+						TokenHYPHEN,
+						TokenNUMBER,
+						TokenEXCLAMATION,
+						TokenCROSS,
+						TokenNUMBER,
+						TokenEXCLAMATION,
+						TokenEXCLAMATION,
+					},
+				},
+			},
+		},
 	}
 
 	for _, block := range blocks {
@@ -133,5 +187,37 @@ func TestValuesForIntegers(t *testing.T) {
 			assertTokenValues(t, test.source, test.values)
 		}
 		t.Run(test.source, testValues)
+	}
+}
+
+func TestWhitespace(t *testing.T) {
+	source := "\t\n\v\r\f 0\t\n\v\r\f 1\t\n\v\r\f "
+	want := []TokenKind{TokenNUMBER, TokenNUMBER}
+	assertTokenKinds(t, source, want)
+
+}
+
+func TestTokenValuesReconstructSourceWithNoWhitespace(t *testing.T) {
+	tests := []struct {
+		name  string
+		chars string
+	}{
+		{"digits", "0 1 2 3 4 5 6 7 8 9"},
+		{"operators", "+ - / * ! **"},
+		{"parenthesis", "() (())"},
+		{"random implemented stuff", "2345 **+-/  1 2 + - / / -12++++$"},
+	}
+
+	for _, test := range tests {
+		testValues := extractTokenValues(Lex(test.chars))
+		builder := strings.Builder{}
+		for _, x := range testValues {
+			builder.WriteString(x)
+		}
+		reconstructedString := builder.String()
+		testNoSpaceString := strings.ReplaceAll(test.chars, " ", "")
+		if reconstructedString != testNoSpaceString {
+			t.Errorf("Trying to reconstitute %s from the values of its tokens, gets us %s instead of %s", test.chars, reconstructedString, testNoSpaceString)
+		}
 	}
 }
