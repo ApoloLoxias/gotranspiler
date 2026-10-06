@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"errors"
+	//"errors"
 	"fmt"
 	"testing"
 
@@ -52,7 +52,7 @@ func evalAst(t *testing.T, ast Expression) (Expression, error) {
 		return nil, fmt.Errorf("nil evaluation of %v", ast)
 	}
 
-	return ast, nil
+	return value, nil
 }
 
 func evalString(t *testing.T, source string) (
@@ -100,5 +100,67 @@ func assertBuiltInPartial(t *testing.T, GOT Expression, want string) {
 		}
 	default:
 		t.Errorf("want BuiltInFunc(%s), got %v", want, got)
+	}
+}
+
+func TestArithmetics(t *testing.T) {
+	tests := []struct {
+		from string
+		to   int
+	}{
+		{"1", 1},
+		{"0+1", 0 + 1},
+		{"012-234", 12 - 234},
+		{"1000*12345", 1000 * 12345},
+		{"4/2", 2},
+		{"5/2", 2}, // integer division behaces as floor division
+		{"2**3", 8},
+
+		{"1-2-3", -1 - 2 - 3},
+		{"1-2+4", 1 - 2 + 4},
+		{"1+3+2", 1 + 3 + 2},
+
+		{"1+3*2", 7},
+		{"1*2+3", 5},
+		{"1*2+3*4", 14},
+		{"1+2*3+4", 11},
+		{"1+2*3*4", 25},
+		{"1+2*3*4+5", 30},
+		{"2*3**4", 162},
+		{"1-2**3*4", -31},
+
+		{"-1", -1},
+		{"-1+2", 1},
+		{"-1*2", -2},
+		{"-2**2", -4}, // prefix binds looser than **
+		{"- -3", 3},
+		{"- -2", 2},
+		{"1- -2", 3},
+		{"1+ -2", -1},
+
+		{"0!", 1},
+		{"1!", 1},
+		{"2!", 2},
+		{"3! !", 720},
+		{"1*2!", 3},
+		{"1 + 2 ! * 3", 7},
+		{"(2+3)!", 120},
+		{"1 + (2*3)!", 721},
+	}
+
+	for _, test := range tests {
+		_, _, value, err := evalString(t, test.from)
+		if err != nil {
+			fmt.Printf("test.from parses with error %v", err)
+		}
+		t.Run(
+			test.from,
+			func(t *testing.T) {
+				assertInteger(t,
+					value,
+					test.to,
+				)
+			},
+		)
 	}
 }
