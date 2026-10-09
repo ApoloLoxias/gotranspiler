@@ -136,95 +136,59 @@ func (p *parser) parse(previousPriority int) Expression {
 		return first
 	}
 
-	// Now we will parse the second term, i.e. the infix/sufix
-	// var fun Expression // declaration to use inside application loop
-	//	Opening parenthesis mustn't trigger the loop, lest we update priority and arg2 := p.parse(priority), accepting `(` as the argument
-	if p.current().IsInfix() || p.current().IsSuffix() || p.current().Kind == lex.TokenCLOSE_PARENTHESIS { //start infix loop. When implementing sufixes, may want to have an aditional arm for the if-else (i.e. if-else if-else)
-		for p.at < len(p.in) {
-			operator := p.current()
-
-			var operation Expression
-			switch operator.Kind {
-			case lex.TokenCROSS:
-				operation = Sum
-			case lex.TokenHYPHEN:
-				operation = Sub
-			case lex.TokenASTERISK:
-				operation = Mul
-			case lex.TokenFORWARD_SLASH:
-				operation = Div
-			case lex.TokenASTERISK_ASTERISK:
-				operation = Pow
-
-			case lex.TokenEXCLAMATION:
-				operation = Fac
-
-			case lex.TokenCLOSE_PARENTHESIS:
-				// p.next()
-				// not advancing so as not to desynch nested
-				// groups when parseFirst consumes `)`
-				return first
-			}
-
-			var priority int //the following if-chain is exhaustive, since the for loop accepts infixes, suffixes and ")", and ")" has already been returned
-			if p.current().IsInfix() {
-				priority = lex.InfixPriority[operator.Kind]
-			}
-			if p.current().IsSuffix() {
-				priority = lex.SuffixPriority[operator.Kind]
-			}
-
-			associativity := lex.AssociativityOf(operator.Kind)
-			if priority < previousPriority || (associativity == lex.LeftAssociativity && priority == previousPriority) { // <= for left-associativity; < for right-associativity
-				return first
-			}
-
-			if p.current().IsSuffix() {
-				p.next()
-				first = ApplicationE{Function: operation, Argument: first}
-				continue
-			}
-
-			//partial application of infix operator
-			if p.next() == errEOF { //p.current is an infix -- partial application branch --, or is prefix before EOF, about which we don't care
-				return ApplicationE{Function: operation, Argument: first}
-			}
-
-			arg := p.parse(priority) // The second operand: "first operator arg"
-
-			first = ApplicationE{
-				Function: ApplicationE{Function: operation, Argument: first},
-				Argument: arg,
-			}
+	for p.at < len(p.in) {
+		if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
+			return first
 		}
 
-		return first
-	} //Aplication branch ignored for now
-	/* else { //If dealing with "Expression1 Expression2" (will likely be preceded by else if p.current().IsPostfix())
-		// arg is Expression1, now we must apply Expression1(Expression2), by means of fun = (E1=first); arg = E2; return fun(arg)
-
-		for p.at < len(p.in) {
-			fun = first
-			// operator := whitespace
-
-			priority := lex.ApplicationPriority
-			if priority <= previousPriority {
-				return fun
-			}
-
-			if p.next() == errEOF {
-				return fun
-			} else if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
-				return fun
-			}
-
-			arg := p.parse(priority)
-			return ApplicationE{Function: fun, Argument: arg} //maybe just assign it to a variable that is returned at the tail by default
+		if !(p.current().IsInfix() || p.current().IsSuffix()) {
+			// functional application branch
+			// triggered by opening parenthesis or any regular first
+			// in other words, juxtaposed expressions with no operator
+			// or whitespace as an operator
 		}
-	} */
 
-	// will be unreachable if application branch is accessed via else statetametn
-	return first //currently unreachable except for prefix followed by EOF, which won't likely be a valid expression anyway // compiler says it is not reachable at all,huh!? //Currently using a if-else (posibly an if-else if-else when dealing with suffixes) which returns on both if and else. Makes sense that this is unreachable// SO the thing about assigning a var on else arm and letting it be returned  at the tail would make sense when implementing suffixes if suffixes and applications have semantically simillar return values? // I hope that doesn't happen
+		operation, ok := operationFromOperator[p.current().Kind]
+		if ok == false {
+			return nil
+		}
+
+		var priority int
+		if p.current().IsInfix() {
+			priority = lex.InfixPriority[p.current().Kind]
+		} else {
+			priority = lex.SuffixPriority[p.current().Kind]
+		}
+		associativity := lex.AssociativityOf(p.current().Kind)
+
+		if checkPriority(priority, previousPriority, associativity) {
+			return first
+		}
+
+		if p.current().IsSuffix() {
+			first = ApplicationE{Function: operation, Argument: first}
+			p.next()
+			continue
+		}
+
+		//infix branch
+		if p.next() == errEOF { //partial application of infix
+			return ApplicationE{Function: operation, Argument: first}
+		}
+
+		arg := p.parse(priority) //Second arg of full infix applicaiton. First is the first arg
+		if arg == nil {          // second arg fails to parse
+			return nil
+		}
+
+		first = ApplicationE{
+			Function: ApplicationE{Function: operation, Argument: first},
+			Argument: arg,
+		}
+
+	}
+
+	return first
 }
 
 /* --------HELPERS---------- */
@@ -263,3 +227,25 @@ func (p *parser) current() lex.Token {
 }
 
 var errEOF = errors.New("EOF")
+
+//export to a config file later; explore as a means of operator overload
+var operationFromOperator = map[lex.TokenKind]Expression{ //const
+	lex.TokenCROSS:             Sum,
+	lex.TokenHYPHEN:            Sub,
+	lex.TokenASTERISK:          Mul,
+	lex.TokenFORWARD_SLASH:     Div,
+	lex.TokenASTERISK_ASTERISK: Pow,
+	lex.TokenEXCLAMATION:       Fac,
+}
+
+// nextPriority < previousPriority for RightAssociativity
+// nextPreiirty <= previousPriority for LeftAssociativity
+func checkPriority(nextPriority, previousPriority int, associativy lex.Associativity) bool {
+	if nextPriority < previousPriority {
+		return true
+	}
+	if associativy == lex.LeftAssociativity && nextPriority == previousPriority {
+		return true
+	}
+	return false
+}

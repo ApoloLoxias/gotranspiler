@@ -152,18 +152,18 @@ func (t Token) IsFirst() bool {
 
 /* --- ASSOCIATIVITY --- */
 
-type associativity string
+type Associativity string
 
 const (
-	LeftAssociativity  associativity = "left"
-	RightAssociativity associativity = "right"
+	LeftAssociativity  Associativity = "left"
+	RightAssociativity Associativity = "right"
 )
 
-var rightAssociatives = map[TokenKind]associativity{ //left associativity by default
+var rightAssociatives = map[TokenKind]Associativity{ //left associativity by default
 	TokenASTERISK_ASTERISK: RightAssociativity,
 }
 
-func AssociativityOf(kind TokenKind) associativity {
+func AssociativityOf(kind TokenKind) Associativity {
 	_, ok := rightAssociatives[kind]
 	if ok {
 		return RightAssociativity
