@@ -160,7 +160,7 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 
 		var priority int
-		if p.current().IsInfix() {
+		if currentToken.IsInfix() {
 			priority = lex.InfixPriority[operator]
 		} else {
 			priority = lex.SuffixPriority[operator]
@@ -171,25 +171,27 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 		appliedOperation := ApplicationE{Function: operation, Argument: first}
 
+		//infix branch
+		if currentToken.IsInfix() {
+			if p.next() == errEOF { //partial application of infix
+				return appliedOperation
+			}
+
+			arg := p.parse(priority) //Second arg of full infix applicaiton. First is the first arg
+			if arg == nil {          // second arg fails to parse
+				return nil
+			}
+
+			first = ApplicationE{
+				Function: appliedOperation,
+				Argument: arg,
+			}
+		}
+
+		//sufix brancgh
 		if currentToken.IsSuffix() { //therefore, single application is full application
 			first = appliedOperation
 			p.next()
-			continue
-		}
-
-		//infix branch
-		if p.next() == errEOF { //partial application of infix
-			return appliedOperation
-		}
-
-		arg := p.parse(priority) //Second arg of full infix applicaiton. First is the first arg
-		if arg == nil {          // second arg fails to parse
-			return nil
-		}
-
-		first = ApplicationE{
-			Function: appliedOperation,
-			Argument: arg,
 		}
 
 	}
