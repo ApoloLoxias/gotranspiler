@@ -137,43 +137,49 @@ func (p *parser) parse(previousPriority int) Expression {
 	}
 
 	for p.at < len(p.in) {
-		if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
+		currentToken := p.current()
+
+		//End of Expression branch
+		if currentToken.Kind == lex.TokenCLOSE_PARENTHESIS {
 			return first
 		}
 
-		if !(p.current().IsInfix() || p.current().IsSuffix()) {
+		//Application/juxtaposition branch
+		if !(currentToken.IsInfix() || currentToken.IsSuffix()) {
 			// functional application branch
 			// triggered by opening parenthesis or any regular first
 			// in other words, juxtaposed expressions with no operator
 			// or whitespace as an operator
 		}
 
-		operation, ok := operationFromOperator[p.current().Kind]
+		//Dedicated operation/suffixes and infixes branch
+		operator := currentToken.Kind
+		operation, ok := operationFromOperator[operator]
 		if ok == false {
 			return nil
 		}
 
 		var priority int
 		if p.current().IsInfix() {
-			priority = lex.InfixPriority[p.current().Kind]
+			priority = lex.InfixPriority[operator]
 		} else {
-			priority = lex.SuffixPriority[p.current().Kind]
+			priority = lex.SuffixPriority[operator]
 		}
-		associativity := lex.AssociativityOf(p.current().Kind)
-
+		associativity := lex.AssociativityOf(operator)
 		if checkPriority(priority, previousPriority, associativity) {
 			return first
 		}
+		appliedOperation := ApplicationE{Function: operation, Argument: first}
 
-		if p.current().IsSuffix() {
-			first = ApplicationE{Function: operation, Argument: first}
+		if currentToken.IsSuffix() { //therefore, single application is full application
+			first = appliedOperation
 			p.next()
 			continue
 		}
 
 		//infix branch
 		if p.next() == errEOF { //partial application of infix
-			return ApplicationE{Function: operation, Argument: first}
+			return appliedOperation
 		}
 
 		arg := p.parse(priority) //Second arg of full infix applicaiton. First is the first arg
@@ -182,7 +188,7 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 
 		first = ApplicationE{
-			Function: ApplicationE{Function: operation, Argument: first},
+			Function: appliedOperation,
 			Argument: arg,
 		}
 
