@@ -57,8 +57,8 @@ func (p *parser) parseFirst() Expression {
 		return ApplicationE{Function: Neg, Argument: prefixArg}
 	}
 
-	//A Application branch ignroed for now
-	/*if first.IsFunction() {
+	//A Application branch; its just an expanded prefix branch, since prefix and application share the juxtaposition syntax
+	if first.IsFunction() {
 		priority := lex.ApplicationPriority
 		var fun Expression
 		switch first.Kind {
@@ -74,13 +74,18 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF {
 			return fun
 		}
+		return fun //deletage application to the caller (p.parse)
+		//from now on, unreachable code
+		if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
+			return fun
+		}
 		arg := p.parse(priority) //returns nil on `)`
 		if arg == nil {          //Lest `)` be treated as fun's argument
 			//		p.next() // Get ')' out of the way. No need to check for EOF since we'll return anyway. // Adding this skip didn't work lol
 			return fun
 		}
 		return ApplicationE{Function: fun, Argument: arg}
-	} */
+	}
 
 	switch first.Kind {
 	case lex.TokenNUMBER:
@@ -151,6 +156,15 @@ func (p *parser) parse(previousPriority int) Expression {
 			// triggered by opening parenthesis or any regular first
 			// in other words, juxtaposed expressions with no operator
 			// or whitespace as an operator
+			if currentToken.Kind == lex.TokenCLOSE_PARENTHESIS {
+				return parsed
+			}
+			//arg := p.parse(lex.ApplicationPriority)
+			arg := p.parseFirst()
+			if arg == nil {
+				return parsed
+			}
+			parsed = ApplicationE{Function: parsed, Argument: arg}
 
 			//Dedicated operation/suffixes and infixes branch
 		default:

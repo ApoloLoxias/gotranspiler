@@ -84,7 +84,7 @@ var InfixPriority = map[TokenKind]int{ //const
 	TokenASTERISK_ASTERISK: 4,
 }
 
-// const ApplicationPriority int = 4 // when reintroducing application, consider asterisk_asterisk: 4 and application: 5
+const ApplicationPriority int = 5
 
 var PrefixTokens = []TokenKind{ //const
 	TokenHYPHEN,
@@ -99,7 +99,7 @@ var SuffixTokens = []TokenKind{ //const
 }
 
 var SuffixPriority = map[TokenKind]int{ //const
-	TokenEXCLAMATION: 5, //consider 6 if application gets bumped to 5
+	TokenEXCLAMATION: 6,
 }
 
 // Firsts can start an expression
