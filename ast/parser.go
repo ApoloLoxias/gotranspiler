@@ -132,29 +132,30 @@ func (p *parser) parse(previousPriority int) Expression {
 	if parsed == nil { //propagate the parsing failure
 		return nil
 	}
-	if p.at >= len(p.in) { //nothing after first. It is the whole expression
-		return parsed
-	}
+	//if there's nothing after the first term, we get p.at >= len(p.in),
+	//so we skip the for loop and immediatly return the first term
+	//i.e. there's only one term and parseFirst parsed the whole expresison
 
 	var done bool
 	for p.at < len(p.in) && !done {
 		currentToken := p.current()
 
+		switch {
 		//End of Expression branch
-		if currentToken.Kind == lex.TokenCLOSE_PARENTHESIS {
+		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS:
 			return parsed
-		}
 
-		//Application/juxtaposition branch
-		if !(currentToken.IsInfix() || currentToken.IsSuffix()) {
+			//Application/juxtaposition branch
+		case !(currentToken.IsInfix() || currentToken.IsSuffix()):
 			// functional application branch
 			// triggered by opening parenthesis or any regular first
 			// in other words, juxtaposed expressions with no operator
 			// or whitespace as an operator
-		}
 
-		//Dedicated operation/suffixes and infixes branch
-		parsed, done = p.parseOperation(parsed, currentToken, previousPriority)
+			//Dedicated operation/suffixes and infixes branch
+		default:
+			parsed, done = p.parseOperation(parsed, currentToken, previousPriority)
+		}
 	}
 
 	return parsed
