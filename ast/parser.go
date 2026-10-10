@@ -153,50 +153,60 @@ func (p *parser) parse(previousPriority int) Expression {
 		}
 
 		//Dedicated operation/suffixes and infixes branch
-		operator := currentToken.Kind
-		operation, ok := operationFromOperator[operator]
-		if ok == false {
-			return nil
-		}
-
-		var priority int
-		if currentToken.IsInfix() {
-			priority = lex.InfixPriority[operator]
-		} else {
-			priority = lex.SuffixPriority[operator]
-		}
-		associativity := lex.AssociativityOf(operator)
-		if checkPriority(priority, previousPriority, associativity) {
-			return first
-		}
-		appliedOperation := ApplicationE{Function: operation, Argument: first}
-
-		//infix branch
-		if currentToken.IsInfix() {
-			if p.next() == errEOF { //partial application of infix
-				return appliedOperation
-			}
-
-			arg := p.parse(priority) //Second arg of full infix applicaiton. First is the first arg
-			if arg == nil {          // second arg fails to parse
-				return nil
-			}
-
-			first = ApplicationE{
-				Function: appliedOperation,
-				Argument: arg,
-			}
-		}
-
-		//sufix brancgh
-		if currentToken.IsSuffix() { //therefore, single application is full application
-			first = appliedOperation
-			p.next()
+		var done bool
+		first, done = p.parseSecond(currentToken, previousPriority, first)
+		if done {
+			break
 		}
 
 	}
 
 	return first
+}
+
+func (p *parser) parseSecond(currentToken lex.Token, previousPriority int, first Expression) (Expression, bool) {
+	operator := currentToken.Kind
+	operation, ok := operationFromOperator[operator]
+	if ok == false {
+		return nil, true
+	}
+
+	var priority int
+	if currentToken.IsInfix() {
+		priority = lex.InfixPriority[operator]
+	} else {
+		priority = lex.SuffixPriority[operator]
+	}
+	associativity := lex.AssociativityOf(operator)
+	if checkPriority(priority, previousPriority, associativity) {
+		return first, true
+	}
+	appliedOperation := ApplicationE{Function: operation, Argument: first}
+
+	//infix branch
+	if currentToken.IsInfix() {
+		if p.next() == errEOF { //partial application of infix
+			return appliedOperation, true
+		}
+
+		arg := p.parse(priority) //Second arg of full infix applicaiton. First is the first arg
+		if arg == nil {          // second arg fails to parse
+			return nil, true
+		}
+
+		first = ApplicationE{
+			Function: appliedOperation,
+			Argument: arg,
+		}
+	}
+
+	//sufix brancgh
+	if currentToken.IsSuffix() { //therefore, single application is full application
+		first = appliedOperation
+		p.next()
+	}
+
+	return first, false
 }
 
 /* --------HELPERS---------- */
