@@ -67,4 +67,4 @@
 * - f x + y = - (f x) + y
 * - x + = (- x) + = +$ (- x) // partial application of trailing infix
 * - f x = - (f x)
-* f - x = f (- x) but x - y is an infix?
+* f - x = f (- x) but x - y is an infix? let's just keep it as infix so we can keep all atoms as unary functions

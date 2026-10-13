@@ -121,9 +121,10 @@ func main() {
 	test("- *$1 2 + 3")
 	test("+$(1)2")
 	test("(+$)1(2)")
-	test("1 + (*$ -2 3) - -5")
-	test("1 + -$ 2 3")
-	test("+$ 1 - 2 3")
+	// +$ - 2 3 is cursed. Since all atoms/values, including primitives are unary functions, 'n - m' must be parsed the same as 'f - n', so we cant have both '(-$ n) m' and 'f (- n)' with no parenthesys
+	//	test("1 + (*$ -2 3) - -5")
+	test("1 + -$ 2 3")    //not evaluated, 2 and 3 are standins for functions
+	testAST("+$ 1 - 2 3") // not evaluated
 }
 
 /* ----------------------------- */
@@ -140,6 +141,21 @@ func test(s string) {
 	}
 	fmt.Println(expr.Pretty())
 	fmt.Println(expr.Evaluate().Pretty())
+
+	fmt.Println("------------------")
+}
+
+func testAST(s string) {
+	fmt.Println(s)
+
+	tokens := lex.Lex(s)
+	fmt.Println(tokens)
+
+	expr, err := ast.Parse(tokens)
+	if err != nil {
+		fmt.Println("Parser error: ", err)
+	}
+	fmt.Println(expr.Pretty())
 
 	fmt.Println("------------------")
 }
