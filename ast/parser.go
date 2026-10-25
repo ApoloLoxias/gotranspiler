@@ -59,32 +59,25 @@ func (p *parser) parseFirst() Expression {
 
 	//A Application branch; its just an expanded prefix branch, since prefix and application share the juxtaposition syntax
 	if first.IsFunction() {
-		priority := lex.ApplicationPriority
-		var fun Expression
-		switch first.Kind {
-		case lex.TokenCROSS_FUNC:
-			fun = Sum
-		case lex.TokenHYPHEN_FUNC:
-			fun = Sub
-		case lex.TokenASTERISK_FUNC:
-			fun = Mul
-		case lex.TokenFORWARD_SLASH_FUNC:
-			fun = Div
-		}
+		// priority := lex.ApplicationPriority
+		fun := functionFromToken[first.Kind]
+
 		if p.next() == errEOF {
 			return fun
 		}
 		return fun //deletage application to the caller (p.parse)
 		//from now on, unreachable code
-		if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
-			return fun
-		}
-		arg := p.parse(priority) //returns nil on `)`
-		if arg == nil {          //Lest `)` be treated as fun's argument
-			//		p.next() // Get ')' out of the way. No need to check for EOF since we'll return anyway. // Adding this skip didn't work lol
-			return fun
-		}
-		return ApplicationE{Function: fun, Argument: arg}
+		/*
+			if p.current().Kind == lex.TokenCLOSE_PARENTHESIS {
+				return fun
+			}
+			arg := p.parse(priority) //returns nil on `)`
+			if arg == nil {          //Lest `)` be treated as fun's argument
+				//		p.next() // Get ')' out of the way. No need to check for EOF since we'll return anyway. // Adding this skip didn't work lol
+				return fun
+			}
+			return ApplicationE{Function: fun, Argument: arg}
+		*/
 	}
 
 	switch first.Kind {
@@ -269,6 +262,17 @@ var operationFromOperator = map[lex.TokenKind]Expression{ //const
 	lex.TokenFORWARD_SLASH:     Div,
 	lex.TokenASTERISK_ASTERISK: Pow,
 	lex.TokenEXCLAMATION:       Fac,
+}
+
+var functionFromToken = map[lex.TokenKind]Expression{ //const
+	lex.TokenCROSS_FUNC:         Sum,
+	lex.TokenHYPHEN_FUNC:        Sub,
+	lex.TokenASTERISK_FUNC:      Mul,
+	lex.TokenFORWARD_SLASH_FUNC: Div,
+}
+
+var operationFromPrefix = map[lex.TokenKind]Expression{ //const
+	lex.TokenHYPHEN: Neg,
 }
 
 // nextPriority < previousPriority for RightAssociativity
