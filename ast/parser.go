@@ -96,6 +96,7 @@ func (p *parser) parseFirst() Expression {
 			return nil
 		}
 
+		// mark b5c9
 		if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_PARENTHESIS { // toReturn is p.parseFirst(), because what follows "(" is a first, so we skip the infix loop, but than we don't really handle ")" in pareFirst() as we do in parse(0), so we handle it here
 			/*
 			* Note: I was going to compare handling ")" after exiting parseFirst to handling it before exiting parseFirst(i.e. in the parseFirst function)
@@ -112,6 +113,31 @@ func (p *parser) parseFirst() Expression {
 		// Parse's trailing token cehck won't catch unbalacned "("
 		// The following return is accessed by ending the input before closing all "("
 		return nil
+	case lex.TokenIDENTIFIER: //at least for now, identifiers will allways be followed by ':{', marking the start of a function/lambda appliedOperation
+		name := first.Value
+		if p.next() == errEOF { // go to ':', we must not hit errEOF her"e
+			return nil // this shouldn't happen -> malformed input
+		}
+		if p.at < len(p.in) && p.current().Kind == lex.TokenCOLON { //only real desirable option for now
+			if p.next() == errEOF { //skip ':'
+				return nil // malformed input
+			}
+			if p.current().Kind != lex.TokenOPEN_CURLY || p.next() == errEOF { //skip "{"
+				return nil // malformed input
+			}
+			body := p.parse(0)
+			if body == nil {
+				return nil
+			}
+			if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_CURLY { //in the likelyhood of mark b5c9 @ ast/parser.go
+				p.next()
+				return LambdaE{ParamId: newParamId(), ParamName: name, Body: body}
+			} else {
+				return nil
+			}
+		}
+
+		return VariableE{Name: name}
 	}
 
 	// return for:
@@ -140,7 +166,7 @@ func (p *parser) parse(previousPriority int) Expression {
 
 		switch {
 		//End of Expression branch
-		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS:
+		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS || currentToken.Kind == lex.TokenCLOSE_CURLY:
 			return parsed
 
 			//Application/juxtaposition branch

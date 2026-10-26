@@ -270,3 +270,58 @@ func FacBuiltIn(x Expression) (Expression, error) {
 	}
 
 }
+
+/* --- For Declaring Functions and Binding Variables --- */
+
+type LambdaE struct {
+	ParamName string //metadata about the source code
+	ParamId   int
+	Body      Expression
+}
+
+func (l LambdaE) Evaluate() Expression {
+	return l
+}
+
+func (l LambdaE) String() string {
+	return fmt.Sprintf("LambdaE{ParamName: %s, ParamId: %d, Body: %v}", l.ParamName, l.ParamId, l.Body)
+}
+
+func (l LambdaE) pretty(tabSpace, lvl int) string {
+	tab := strings.Repeat(" ", tabSpace)
+	indent := strings.Repeat(tab, lvl)
+
+	return fmt.Sprintf("LambdaE{\n%s%sParamName %s,\n%s%sParamId %d,\n%s%sBody %v,\n}", indent, tab, l.ParamName, indent, tab, l.ParamId, indent, tab, l.Body)
+}
+
+func (l LambdaE) Pretty(tabSpace ...int) string {
+	tab := defaultTabStop
+	if len(tabSpace) > 0 {
+		tab = tabSpace[0]
+	}
+	return l.pretty(tab, 0)
+}
+
+/* --- */
+
+type VariableE struct{ Name string }
+
+func (v VariableE) Evaluate() Expression {
+	return v
+}
+
+func (v VariableE) String() string {
+	return fmt.Sprintf("VariableE{Name: %s}", v.Name)
+}
+
+func (v VariableE) pretty(tabSpace, lvl int) string {
+	return fmt.Sprintf("VariableE{%s}", v.Name)
+}
+
+func (v VariableE) Pretty(tabSpace ...int) string {
+	tab := defaultTabStop
+	if len(tabSpace) > 0 {
+		tab = tabSpace[0]
+	}
+	return v.pretty(tab, 0)
+}
