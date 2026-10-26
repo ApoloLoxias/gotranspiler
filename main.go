@@ -112,6 +112,7 @@ import (
 }
 */
 
+/*
 func main() {
 	test("+$1 2")
 	test("+$1 (2)")
@@ -125,6 +126,15 @@ func main() {
 	//	test("1 + (*$ -2 3) - -5")
 	test("1 + -$ 2 3")    //not evaluated, 2 and 3 are standins for functions
 	testAST("+$ 1 - 2 3") // not evaluated
+}
+*/
+
+func main() {
+	testTOKENS("{")
+	testTOKENS("}")
+	testTOKENS(":")
+	testTOKENS("{}:")
+	testTOKENS("x: {x+2}")
 }
 
 /* ----------------------------- */
@@ -158,6 +168,13 @@ func testAST(s string) {
 	fmt.Println(expr.Pretty())
 
 	fmt.Println("------------------")
+}
+
+func testTOKENS(s string) {
+	fmt.Println(s)
+
+	tokens := lex.Lex(s)
+	fmt.Println(tokens)
 }
 
 func printTitle(name string) {

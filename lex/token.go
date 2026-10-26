@@ -19,6 +19,8 @@ const (
 	TokenEOF TokenKind = "EndOfFileToken"
 	TokenSOF TokenKind = "StarfOfFileToken"
 
+	TokenIDENTIFIER TokenKind = "IdentifierToken"
+
 	TokenNUMBER TokenKind = "NumericalToken"
 
 	TokenCROSS         TokenKind = "PlusToken"
@@ -37,6 +39,10 @@ const (
 
 	TokenOPEN_PARENTHESIS  TokenKind = "OpenParenthesis"
 	TokenCLOSE_PARENTHESIS TokenKind = "CloseParenthesis"
+	TokenOPEN_CURLY        TokenKind = "OpenCurlyBrace"
+	TokenCLOSE_CURLY       TokenKind = "CloseCurlyBrace"
+
+	TokenCOLON TokenKind = "Colon"
 
 	TokenUNDEFINED_SYMBOL TokenKind = "UndefinedSymbolToken"
 )
@@ -53,6 +59,7 @@ var TerminalTokens = []TokenKind{ //const
 	TokenHYPHEN_FUNC,
 	TokenASTERISK_FUNC,
 	TokenFORWARD_SLASH_FUNC,
+	TokenIDENTIFIER,
 }
 
 var FunctionTokens = []TokenKind{ //const

@@ -78,14 +78,20 @@ const (
 
 	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
 	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$!
+	runeLETTER runeKind = "letter rune"
 
 	runePARENTHESIS runeKind = "parenthesis rune"
+	runeCURLY       runeKind = "curly brace rune"
 
 	runeWHITESPACE runeKind = "whitespace rune"
 )
 
 func (l *lexer) currentKind() runeKind {
 	r := l.current
+
+	if unicode.IsLetter(r) {
+		return runeLETTER
+	}
 
 	if unicode.IsDigit(r) {
 		return runeDIGIT
@@ -127,6 +133,11 @@ var (
 
 	runeOPEN_PARENTHESIS  = rune("("[0])
 	runeCLOSE_PARENTHESIS = rune(")"[0])
+
+	runeOPEN_CURLY  = rune("{"[0])
+	runeCLOSE_CURLY = rune("}"[0])
+
+	runeCOLON = rune(":"[0])
 )
 
 /* --- LEXING FUNCTIONS --- */
@@ -228,5 +239,56 @@ func lexNumOrParen(l *lexer) lexingFunction {
 		return lexNumOrParen
 	}
 
+	if l.current == runeOPEN_CURLY {
+		l.produceToken(l.at, l.width, TokenOPEN_CURLY)
+		err := l.next()
+		if err == errEOF {
+			return nil
+		}
+		return lexNumOrParen
+	}
+	if l.current == runeCLOSE_CURLY {
+		l.produceToken(l.at, l.width, TokenCLOSE_CURLY)
+		err := l.next()
+		if err == errEOF {
+			return nil
+		}
+		return lexNumOrParen
+	}
+
+	if l.current == runeCOLON {
+		l.produceToken(l.at, l.width, TokenCOLON)
+		err := l.next()
+		if err == errEOF {
+			return nil
+		}
+		return lexNumOrParen
+	}
+
+	if l.currentKind() == runeLETTER {
+		return lexIdentifier
+	}
+
 	return lexDecimal //i.e. l.currentKind() != PARENTHESIS
+}
+
+// Note: For now, identifiers accept exclusively letters. In the future, consider things like -,_, numbers and such....
+func lexIdentifier(l *lexer) lexingFunction {
+	startAt := l.at
+	totalWidth := 0
+
+	for l.currentKind() == runeLETTER {
+		totalWidth += l.width
+
+		if l.next() == errEOF {
+			l.produceToken(startAt, totalWidth, TokenIDENTIFIER)
+			return nil
+		}
+
+		if totalWidth != 0 {
+			l.produceToken(startAt, totalWidth, TokenIDENTIFIER)
+		}
+	}
+
+	return lexNumOrParen
 }

@@ -80,6 +80,11 @@ func TestKindsForLexTokens(t *testing.T) {
 					TokenOPEN_PARENTHESIS,
 					TokenCLOSE_PARENTHESIS,
 				}},
+				{"{}", []TokenKind{
+					TokenOPEN_CURLY,
+					TokenCLOSE_CURLY,
+				}},
+				{":", []TokenKind{TokenCOLON}},
 			},
 		},
 		{
@@ -205,7 +210,7 @@ func TestTokenValuesReconstructSourceWithNoWhitespace(t *testing.T) {
 		{"digits", "0 1 2 3 4 5 6 7 8 9"},
 		{"operators", "+ - / * ! **"},
 		{"parenthesis", "() (())"},
-		{"random implemented stuff", "2345 **+-/  1 2 + - / / -12++++$"},
+		{"random implemented stuff", "2{34{5 **+-/  }} : : 1 2 + - / :/ -12++++$"},
 	}
 
 	for _, test := range tests {
