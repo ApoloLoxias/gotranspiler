@@ -304,18 +304,21 @@ func (l LambdaE) Pretty(tabSpace ...int) string {
 
 /* --- */
 
-type VariableE struct{ Name string }
+type VariableE struct {
+	Name string
+	ID   int
+}
 
 func (v VariableE) Evaluate() Expression {
 	return v
 }
 
 func (v VariableE) String() string {
-	return fmt.Sprintf("VariableE{Name: %s}", v.Name)
+	return fmt.Sprintf("VariableE{Name: %s; ID: %d}", v.Name, v.ID)
 }
 
 func (v VariableE) pretty(tabSpace, lvl int) string {
-	return fmt.Sprintf("VariableE{%s}", v.Name)
+	return fmt.Sprintf("VariableE{Name: %s; ID: %d}", v.Name, v.ID)
 }
 
 func (v VariableE) Pretty(tabSpace ...int) string {
