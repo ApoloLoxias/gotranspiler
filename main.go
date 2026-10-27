@@ -130,11 +130,19 @@ func main() {
 */
 
 func main() {
-	testTOKENS("{")
-	testTOKENS("}")
-	testTOKENS(":")
-	testTOKENS("{}:")
-	testTOKENS("x: {x+2}")
+	/*
+		testTOKENS("{")
+		testTOKENS("}")
+		testTOKENS(":")
+		testTOKENS("{}:")
+		testTOKENS("x: {x+2}")
+	*/
+
+	testAST("x: {0}")
+	testAST("y: {y}")
+	testAST("x: {y}")
+	testAST("x: {x + y:{y}}")
+	testAST("x: {x + x:{x}}")
 }
 
 /* ----------------------------- */

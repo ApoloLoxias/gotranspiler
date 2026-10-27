@@ -15,7 +15,7 @@ func Parse(tokens []lex.Token) (Expression, error) {
 		return nil, fmt.Errorf("parser error: no tokens were input")
 	}
 
-	parser := parser{tokens, 0}
+	parser := parser{tokens, 0, 0}
 	expr := parser.parse(0)
 
 	if parser.at < len(parser.in) {
@@ -37,8 +37,9 @@ func Parse(tokens []lex.Token) (Expression, error) {
 /* ----MAIN PARSING LOGIC--- */
 
 type parser struct {
-	in []lex.Token
-	at int
+	in         []lex.Token
+	at         int
+	paramCount int
 }
 
 // The First token of an expression is special because there is no token before it
@@ -131,7 +132,7 @@ func (p *parser) parseFirst() Expression {
 			}
 			if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_CURLY { //in the likelyhood of mark b5c9 @ ast/parser.go
 				p.next()
-				return LambdaE{ParamId: newParamId(), ParamName: name, Body: body}
+				return LambdaE{ParamId: p.newParamId(), ParamName: name, Body: body}
 			} else {
 				return nil
 			}
@@ -311,4 +312,9 @@ func checkPriority(nextPriority, previousPriority int, associativy lex.Associati
 		return true
 	}
 	return false
+}
+
+func (p *parser) newParamId() int {
+	p.paramCount++
+	return p.paramCount
 }

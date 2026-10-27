@@ -291,7 +291,7 @@ func (l LambdaE) pretty(tabSpace, lvl int) string {
 	tab := strings.Repeat(" ", tabSpace)
 	indent := strings.Repeat(tab, lvl)
 
-	return fmt.Sprintf("LambdaE{\n%s%sParamName %s,\n%s%sParamId %d,\n%s%sBody %v,\n}", indent, tab, l.ParamName, indent, tab, l.ParamId, indent, tab, l.Body)
+	return fmt.Sprintf("LambdaE{\n%s%sParamName %s,\n%s%sParamId %d,\n%s%sBody %v,\n}", indent, tab, l.ParamName, indent, tab, l.ParamId, indent, tab, l.Body.pretty(tabSpace, lvl+1))
 }
 
 func (l LambdaE) Pretty(tabSpace ...int) string {
