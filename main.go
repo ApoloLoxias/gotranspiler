@@ -138,14 +138,32 @@ func main() {
 		testTOKENS("x: {x+2}")
 	*/
 
-	testAST("x: {0}")
-	testAST("y: {y}")
-	testAST("x: {y}")
-	testAST("x: {x + y:{y}}")
-	testAST("x: {x + x:{x}}")
+	testResolve("x: {0}")
+	testResolve("y: {y}")
+	testResolve("x: {y}")
+	testResolve("x: {x + y:{y}}")
+	testResolve("x: {x + x:{x}}")
 }
 
 /* ----------------------------- */
+
+func testResolve(s string) {
+	fmt.Println(s)
+
+	tokens := lex.Lex(s)
+	fmt.Println(tokens)
+
+	expr, err := ast.Parse(tokens)
+	if err != nil {
+		fmt.Printf("Parse error: %v\n", err)
+	}
+	fmt.Println(expr.Pretty())
+	expr, err = ast.Resolve(expr)
+	if err != nil {
+		fmt.Printf("Resolution error: %v\n", err)
+	}
+	fmt.Println(expr.Pretty())
+}
 
 func test(s string) {
 	fmt.Println(s)

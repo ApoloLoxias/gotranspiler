@@ -63,7 +63,19 @@ func (a *analyzer) resolve() error {
 		a.scopes = a.scopes[:len(a.scopes)-1]
 		return nil
 	case VariableE:
-		return fmt.Errorf("must implement resolve for VariableE")
+		for _, m := range a.scopes {
+			id, ok := m[e.Name]
+			if ok {
+				e.ID = id
+				a.ast = e
+				break
+			}
+		}
+		if e.ID == 0 {
+			return fmt.Errorf("unbound variable %v", e.Pretty())
+		} else {
+			return nil
+		}
 	default:
 		return fmt.Errorf("ast contains expression of unkown type of unimplemented semantic analysis")
 	}
