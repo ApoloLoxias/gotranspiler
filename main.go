@@ -143,6 +143,13 @@ func main() {
 	testResolve("x: {y}")
 	testResolve("x: {x + y:{y}}")
 	testResolve("x: {x + x:{x}}")
+
+	testResolve("x: {0} 1")
+	testResolve("y: {y} 1")
+	testResolve("x: {y} 1")
+	testResolve("x: {x + y:{y} 2} 1")
+	testResolve("x: {x + x:{x} 2} 1")
+
 }
 
 /* ----------------------------- */

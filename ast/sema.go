@@ -14,17 +14,17 @@ func (a *analyzer) nextID() int {
 }
 
 func Resolve(e Expression) (Expression, error) {
-	return resolve(e, nil)
+	return resolve(e, nil, 0)
 }
 
-func resolve(e Expression, s []map[string]int) (Expression, error) {
+func resolve(e Expression, s []map[string]int, i int) (Expression, error) {
 	if s == nil {
 		s = make([]map[string]int, 0)
 	}
 	a := analyzer{
 		ast:     e,
 		scopes:  s,
-		paramID: 0,
+		paramID: i,
 	}
 
 	err := a.resolve()
@@ -37,11 +37,11 @@ func (a *analyzer) resolve() error {
 	case IntE:
 		return nil
 	case ApplicationE:
-		resolvedArg, err := resolve(e.Argument, a.scopes)
+		resolvedArg, err := resolve(e.Argument, a.scopes, a.paramID)
 		if err != nil {
 			return err
 		}
-		resolvedFun, err := resolve(e.Function, a.scopes)
+		resolvedFun, err := resolve(e.Function, a.scopes, a.paramID)
 		if err != nil {
 			return err
 		}
@@ -55,7 +55,7 @@ func (a *analyzer) resolve() error {
 		a.ast = e
 		a.scopes = append(a.scopes, map[string]int{e.ParamName: id})
 		var err error
-		e.Body, err = resolve(e.Body, a.scopes)
+		e.Body, err = resolve(e.Body, a.scopes, a.paramID)
 		if err != nil {
 			return err
 		}
