@@ -3,9 +3,13 @@ package ast
 import "fmt"
 
 type analyzer struct {
-	ast     Expression
-	scopes  []map[string]int
+	scopes  []binding
 	paramID int
+}
+
+type binding struct {
+	name string
+	id   int
 }
 
 func (a *analyzer) nextID() int {
@@ -13,70 +17,74 @@ func (a *analyzer) nextID() int {
 	return a.paramID
 }
 
+func (a analyzer) peek() binding {
+	if len(a.scopes) > 0 {
+		return a.scopes[len(a.scopes)-1]
+	}
+	return binding{}
+}
+
+func (a *analyzer) pop() {
+	a.scopes = a.scopes[:len(a.scopes)-1]
+}
+
+func (a *analyzer) push(f LambdaE) {
+	a.scopes = append(a.scopes, binding{name: f.ParamName, id: f.ParamId})
+}
+
+func (a *analyzer) lookVarUp(x VariableE) (id int, matched bool) {
+	matched = false
+	name := x.Name
+	for i := len(a.scopes) - 1; i >= 0; i = i - 1 {
+		if a.scopes[i].name == name {
+			return a.scopes[i].id, true
+		}
+	}
+	return 0, matched
+
+}
+
 func Resolve(e Expression) (Expression, error) {
-	return resolve(e, nil, 0)
+	a := &analyzer{}
+	return a.resolve(e)
 }
 
-func resolve(e Expression, s []map[string]int, i int) (Expression, error) {
-	if s == nil {
-		s = make([]map[string]int, 0)
-	}
-	a := analyzer{
-		ast:     e,
-		scopes:  s,
-		paramID: i,
-	}
-
-	err := a.resolve()
-
-	return a.ast, err
-}
-
-func (a *analyzer) resolve() error {
-	switch e := a.ast.(type) {
+func (a *analyzer) resolve(E Expression) (Expression, error) {
+	switch e := E.(type) {
 	case IntE:
-		return nil
+		return e, nil
 	case ApplicationE:
-		resolvedArg, err := resolve(e.Argument, a.scopes, a.paramID)
+		resolvedArg, err := a.resolve(e.Argument)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		resolvedFun, err := resolve(e.Function, a.scopes, a.paramID)
+		resolvedFun, err := a.resolve(e.Function)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		a.ast = ApplicationE{Function: resolvedFun, Argument: resolvedArg}
-		return nil
+		e.Function = resolvedFun
+		e.Argument = resolvedArg
+		return e, err
 	case BuiltInFunc:
-		return nil
+		return e, nil
 	case LambdaE:
 		id := a.nextID()
 		e.ParamId = id
-		a.ast = e
-		a.scopes = append(a.scopes, map[string]int{e.ParamName: id})
+		a.push(e)
 		var err error
-		e.Body, err = resolve(e.Body, a.scopes, a.paramID)
+		e.Body, err = a.resolve(e.Body)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		a.ast = e
-		a.scopes = a.scopes[:len(a.scopes)-1]
-		return nil
+		return e, nil
 	case VariableE:
-		for _, m := range a.scopes {
-			id, ok := m[e.Name]
-			if ok {
-				e.ID = id
-				a.ast = e
-				break
-			}
+		var ok bool
+		e.ID, ok = a.lookVarUp(e)
+		if ok == false {
+			return nil, fmt.Errorf("unbound var %v", e)
 		}
-		if e.ID == 0 {
-			return fmt.Errorf("unbound variable %v", e.Pretty())
-		} else {
-			return nil
-		}
+		return e, nil
 	default:
-		return fmt.Errorf("ast contains expression of unkown type of unimplemented semantic analysis")
+		return nil, fmt.Errorf("ast contains expression of unkown type (%t) of unimplemented semantic analysis", E)
 	}
 }
