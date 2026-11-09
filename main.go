@@ -163,11 +163,13 @@ func testResolve(s string) {
 	expr, err := ast.Parse(tokens)
 	if err != nil {
 		fmt.Printf("Parse error: %v\n", err)
+		return
 	}
 	fmt.Println(expr.Pretty())
 	expr, err = ast.Resolve(expr)
 	if err != nil {
 		fmt.Printf("Resolution error: %v\n", err)
+		return
 	}
 	fmt.Println(expr.Pretty())
 }
@@ -181,6 +183,7 @@ func test(s string) {
 	expr, err := ast.Parse(tokens)
 	if err != nil {
 		fmt.Println("Parser error: ", err)
+		return
 	}
 	fmt.Println(expr.Pretty())
 	fmt.Println(expr.Evaluate().Pretty())
@@ -197,6 +200,7 @@ func testAST(s string) {
 	expr, err := ast.Parse(tokens)
 	if err != nil {
 		fmt.Println("Parser error: ", err)
+		return
 	}
 	fmt.Println(expr.Pretty())
 

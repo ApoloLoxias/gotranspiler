@@ -17,6 +17,7 @@ func (a *analyzer) nextID() int {
 	return a.paramID
 }
 
+// peek is kept for convenience when making changes/degubbing, but currently unused
 func (a analyzer) peek() binding {
 	if len(a.scopes) > 0 {
 		return a.scopes[len(a.scopes)-1]
@@ -76,6 +77,7 @@ func (a *analyzer) resolve(E Expression) (Expression, error) {
 		if err != nil {
 			return nil, err
 		}
+		a.pop()
 		return e, nil
 	case VariableE:
 		var ok bool
@@ -85,6 +87,6 @@ func (a *analyzer) resolve(E Expression) (Expression, error) {
 		}
 		return e, nil
 	default:
-		return nil, fmt.Errorf("ast contains expression of unkown type (%t) of unimplemented semantic analysis", E)
+		return nil, fmt.Errorf("ast contains expression of unkown type (%T) of unimplemented semantic analysis", E)
 	}
 }
