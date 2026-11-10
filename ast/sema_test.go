@@ -246,3 +246,78 @@ func TestVarIDs(t *testing.T) {
 		)
 	}
 }
+
+// Properties to test:
+// No lambdas have the same ID
+// Varialbes with same ID/Lambdas with same ParamId have same Name/ParamName
+// No free variable, whose ID isn't tied to lambda
+// All variables are inside lambds with their exact ID
+
+func assertNoLambdasHaveTheSameId(t *testing.T, test *manualTest) {
+	t.Helper()
+
+	if test.In == nil {
+		tokens, err := lexString(t, test.From)
+		if err != nil {
+			t.Errorf("failed to lex '%s'", test.In)
+		}
+		ast, err := parseTokens(t, tokens)
+		if err != nil {
+			t.Errorf("failed to parse %s, lexed from %s", tokens, test.In)
+		}
+		test.In = ast
+	}
+
+	got, err := Resolve(test.In)
+	if err != nil && test.Err == false {
+		t.Errorf("failed to resolve %s, with errror %s", test.From, err)
+	}
+	if err != nil && test.Err == true {
+		return
+	}
+	if err == nil && test.Err == true {
+		t.Errorf("didn't failt to resolve %s", test.From)
+	}
+	test.Got = got
+
+	lambdaAndVarIdsHelper(t, test.Got, []intString{})
+}
+
+type intString struct {
+	int
+	string
+}
+
+func lambdaAndVarIdsHelper(t *testing.T, expr Expression, oldStack []intString) []intString {
+	t.Helper()
+
+	switch EXPR := expr.(type) {
+	case LambdaE:
+		stack := append(oldStack, intString{EXPR.ParamId, EXPR.ParamName})
+		lambdaAndVarIdsHelper(t, EXPR.Body, stack)
+	case VariableE:
+		for _, pair := range oldStack {
+			if EXPR.ID == pair.int {
+				if EXPR.Name == pair.string {
+					return oldStack
+				}
+				t.Errorf("non unique var/lambda ID for var %s", EXPR.Pretty())
+			}
+		}
+		t.Errorf("%s, in scope with variable IDs %v", EXPR, oldStack)
+	case ApplicationE:
+		lambdaAndVarIdsHelper(t, EXPR.Function, oldStack)
+		lambdaAndVarIdsHelper(t, EXPR.Argument, oldStack)
+	}
+
+	return []intString{}
+}
+
+func TestLambdasAssignUniqueIDsToTheirParameters(t *testing.T) {
+	for _, test := range manualCases {
+		t.Run(
+			test.From,
+			func(t *testing.T) { assertNoLambdasHaveTheSameId(t, &test) },
+		)
+	}
+}
