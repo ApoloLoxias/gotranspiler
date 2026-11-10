@@ -1,10 +1,6 @@
 package ast
 
 import (
-	"errors"
-	"fmt"
-	"github.com/ApoloLoxias/gotranspiler/lex"
-	"reflect"
 	"testing"
 )
 
@@ -136,39 +132,33 @@ var manualCases = []manualTest{
 			ParamName: "x",
 			ParamId:   0,
 			Body: ApplicationE{
-				Function: ApplicationE{
-					Function: LambdaE{
-						ParamName: "y",
-						ParamId:   0,
-						Body:      VariableE{"x", 0},
-					},
-					Argument: LambdaE{
-						ParamName: "x",
-						ParamId:   0,
-						Body:      VariableE{"x", 0},
-					},
+				Function: LambdaE{
+					ParamName: "y",
+					ParamId:   0,
+					Body:      VariableE{"x", 0},
 				},
-				Argument: LambdaE{},
+				Argument: LambdaE{
+					ParamName: "x",
+					ParamId:   0,
+					Body:      VariableE{"x", 0},
+				},
 			},
 		},
 		Err: false,
-		Want: LambdaE{
+		Want: LambdaE{ //Note: on applications, argument is indexed before function, so x: {x} gets index 2 and y: {x} gets index 3
 			ParamName: "x",
 			ParamId:   1,
 			Body: ApplicationE{
-				Function: ApplicationE{
-					Function: LambdaE{
-						ParamName: "y",
-						ParamId:   2,
-						Body:      VariableE{"x", 1},
-					},
-					Argument: LambdaE{
-						ParamName: "x",
-						ParamId:   3,
-						Body:      VariableE{"x", 3},
-					},
+				Function: LambdaE{
+					ParamName: "y",
+					ParamId:   3,
+					Body:      VariableE{"x", 1},
 				},
-				Argument: LambdaE{},
+				Argument: LambdaE{
+					ParamName: "x",
+					ParamId:   2,
+					Body:      VariableE{"x", 2},
+				},
 			},
 		},
 	},
@@ -214,4 +204,45 @@ var manualCases = []manualTest{
 			},
 		},
 	},
+}
+
+func assertManualCase(t *testing.T, test *manualTest) {
+	t.Helper()
+
+	if test.In == nil {
+		tokens, err := lexString(t, test.From)
+		if err != nil {
+			t.Errorf("failed to lex '%s'", test.In)
+		}
+		ast, err := parseTokens(t, tokens)
+		if err != nil {
+			t.Errorf("failed to parse %s, lexed from %s", tokens, test.In)
+		}
+		test.In = ast
+	}
+
+	got, err := Resolve(test.In)
+	if err != nil && test.Err == false {
+		t.Errorf("failed to resolve %s, with errror %s", test.From, err)
+	}
+	if err != nil && test.Err == true {
+		return
+	}
+	if err == nil && test.Err == true {
+		t.Errorf("didn't failt to resolve %s", test.From)
+	}
+	test.Got = got
+
+	if test.Got.String() != test.Want.String() {
+		t.Errorf("%s, evaluates to:\n%s\n, want:\n%s", test.From, test.Got, test.Want)
+	}
+}
+
+func TestVarIDs(t *testing.T) {
+	for _, test := range manualCases {
+		t.Run(
+			test.From,
+			func(t *testing.T) { assertManualCase(t, &test) },
+		)
+	}
 }
