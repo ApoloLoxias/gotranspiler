@@ -187,7 +187,7 @@ func test(s string) {
 		return
 	}
 	fmt.Println(expr.Pretty())
-	fmt.Println(expr.Evaluate().Pretty())
+	fmt.Println(expr.Evaluate(make(map[int]ast.Expression)).Pretty())
 
 	fmt.Println("------------------")
 }

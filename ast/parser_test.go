@@ -46,7 +46,7 @@ func evalAst(t *testing.T, ast Expression) (Expression, error) {
 		return nil, fmt.Errorf("No ast to evaluate")
 	}
 
-	value := ast.Evaluate()
+	value := ast.Evaluate(make(map[int]Expression))
 
 	if value == nil {
 		return nil, fmt.Errorf("nil evaluation of %v", ast)

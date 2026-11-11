@@ -10,12 +10,14 @@ import (
 // Fundamental AST nodes
 type Expression interface {
 	//Evaluate reduces the ast to an equivalent, simplified one
-	Evaluate() Expression
+	Evaluate(map[int]Expression) Expression
 
 	String() string
 	pretty(int, int) string //helper for Pretty
 	Pretty(...int) string   //variadic as a trick for allowing a default value
 }
+
+type assignment struct{ id int }
 
 // pretty-printing configuration
 const defaultTabStop = 8
@@ -28,7 +30,7 @@ type IntE struct {
 	Value int
 }
 
-func (i IntE) Evaluate() Expression {
+func (i IntE) Evaluate(scope map[int]Expression) Expression {
 	return i
 }
 
@@ -55,18 +57,24 @@ type ApplicationE struct {
 	Argument Expression
 }
 
-func (a ApplicationE) Evaluate() Expression { //TODO
+func (a ApplicationE) Evaluate(scope map[int]Expression) Expression { //TODO
 	switch f := a.Function.(type) {
 	case BuiltInFunc:
-		result, _ := f.Func(a.Argument.Evaluate())
+		result, _ := f.Func(a.Argument.Evaluate(scope))
 		return result
 	case ApplicationE:
-		fEval := f.Evaluate()
-		argEval := a.Argument.Evaluate()
+		fEval := f.Evaluate(scope)
+		argEval := a.Argument.Evaluate(scope)
 		appEval := ApplicationE{Function: fEval, Argument: argEval}
-		return appEval.Evaluate()
+		return appEval.Evaluate(scope)
 	case IntE:
 		return f
+	case VariableE:
+		return f //probably a type error when implementing types?A variable could be a legitimate type and,thus a function...
+	case LambdaE:
+		scope[f.ParamId] = a.Argument.Evaluate(scope)
+		// Argument evaluated before expanding scope (x: {(x: {f x}) 2}) 1 =  f 2
+		return f.Body.Evaluate(scope)
 	default:
 		break
 	}
@@ -99,7 +107,7 @@ type BuiltInFunc struct {
 	Func func(Expression) (Expression, error)
 }
 
-func (f BuiltInFunc) Evaluate() Expression {
+func (f BuiltInFunc) Evaluate(scope map[int]Expression) Expression {
 	return f
 }
 
@@ -279,7 +287,7 @@ type LambdaE struct {
 	Body      Expression
 }
 
-func (l LambdaE) Evaluate() Expression {
+func (l LambdaE) Evaluate(scope map[int]Expression) Expression {
 	return l
 }
 
@@ -309,8 +317,13 @@ type VariableE struct {
 	ID   int
 }
 
-func (v VariableE) Evaluate() Expression {
-	return v
+func (v VariableE) Evaluate(scope map[int]Expression) Expression {
+	value, ok := scope[v.ID]
+	if ok {
+		return value
+	} else {
+		return v
+	}
 }
 
 func (v VariableE) String() string {
