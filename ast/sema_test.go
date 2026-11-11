@@ -293,6 +293,11 @@ func lambdaAndVarIdsHelper(t *testing.T, expr Expression, oldStack []intString) 
 
 	switch EXPR := expr.(type) {
 	case LambdaE:
+		for _, pair := range oldStack {
+			if pair.int == EXPR.ParamId {
+				t.Errorf("lambdas share IDs \n%s", EXPR.Pretty())
+			}
+		}
 		stack := append(oldStack, intString{EXPR.ParamId, EXPR.ParamName})
 		lambdaAndVarIdsHelper(t, EXPR.Body, stack)
 	case VariableE:
