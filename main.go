@@ -138,19 +138,23 @@ func main() {
 		testTOKENS("x: {x+2}")
 	*/
 
-	testResolve("x: {0}")
-	testResolve("y: {y}")
-	testResolve("x: {y}")
-	testResolve("x: {x + y:{y}}")
-	testResolve("x: {x + x:{x}}")
+	test("x: {0}")
+	test("y: {y}")
+	test("x: {y}")
+	test("x: {x + y:{y}}")
+	test("x: {x + x:{x}}")
 
-	testResolve("x: {0} 1")
-	testResolve("y: {y} 1")
-	testResolve("x: {y} 1")
-	testResolve("x: {x + y:{y} 2} 1")
-	testResolve("x: {x + x:{x} 2} 1")
+	test("x: {0} 1")
+	test("y: {y} 1")
+	test("x: {y} 1")
+	test("x: {x + y:{y} 2} 1")
+	test("x: {x + x:{x} 2} 1")
 
-	testResolve("x: {y: {x} x: {x}}")
+	test("x: {y: {x} x: {x}}")
+
+	test("1 + (*$ -2 3) - -5")
+	test("1 + -$ 2 3")
+	test("+$ 1 - 2 3")
 }
 
 /* ----------------------------- */
@@ -187,7 +191,14 @@ func test(s string) {
 		return
 	}
 	fmt.Println(expr.Pretty())
-	fmt.Println(expr.Evaluate(make(map[int]ast.Expression)).Pretty())
+	expr, err = ast.Resolve(expr)
+	if err != nil {
+		fmt.Printf("Could not resolvem error: %s\n", err)
+		return
+	}
+	fmt.Println(expr)
+	expr = expr.Evaluate(map[int]ast.Expression{})
+	fmt.Println(expr)
 
 	fmt.Println("------------------")
 }

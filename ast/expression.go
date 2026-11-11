@@ -288,7 +288,11 @@ type LambdaE struct {
 }
 
 func (l LambdaE) Evaluate(scope map[int]Expression) Expression {
-	return l
+	return LambdaE{
+		ParamName: l.ParamName,
+		ParamId:   l.ParamId,
+		Body:      l.Body.Evaluate(scope),
+	}
 }
 
 func (l LambdaE) String() string {
