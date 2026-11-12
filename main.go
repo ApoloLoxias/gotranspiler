@@ -138,6 +138,8 @@ func main() {
 		testTOKENS("x: {x+2}")
 	*/
 
+	test("x {x+1} 2")
+
 	test("x: {0}")
 	test("y: {y}")
 	test("x: {y}")
@@ -183,6 +185,9 @@ func test(s string) {
 	fmt.Println(s)
 
 	tokens := lex.Lex(s)
+	fmt.Println(tokens)
+
+	tokens = lex.Normalise(tokens)
 	fmt.Println(tokens)
 
 	expr, err := ast.Parse(tokens)
