@@ -21,13 +21,11 @@ func (n *normaliser) normalise() {
 		if current.Kind == TokenEOF {
 			return
 		}
-		if current.Kind == TokenIDENTIFIER || next.Kind == TokenOPEN_CURLY {
+		if current.Kind == TokenIDENTIFIER && next.Kind == TokenOPEN_CURLY {
 			n.emit(current)
 			n.emit(Token{":", TokenCOLON}) //using empty string as value for synthetic tokens
-			n.emit(next)
 		} else {
 			n.emit(current)
-			n.emit(next)
 		}
 
 		current = next
