@@ -345,3 +345,49 @@ func (v VariableE) Pretty(tabSpace ...int) string {
 	}
 	return v.pretty(tab, 0)
 }
+
+/* --- */
+
+type ImediatlyAppliedFunctionE struct {
+	Parameter VariableE
+	Argument  Expression
+	Body      Expression
+}
+
+func (i ImediatlyAppliedFunctionE) Evaluate(scope map[int]Expression) Expression {
+	return ApplicationE{
+		Function: LambdaE{
+			ParamName: i.Parameter.Name,
+			ParamId:   i.Parameter.ID,
+			Body:      i.Body,
+		},
+		Argument: i.Argument,
+	}
+
+}
+
+func (i ImediatlyAppliedFunctionE) String() string {
+	return fmt.Sprintf("ImediatlyAppliedFunctionE{Parameter: %s, Argument: %s, Body: %s", i.Parameter, i.Argument, i.Body)
+}
+
+func (i ImediatlyAppliedFunctionE) pretty(tabSpace, lvl int) string {
+	tab := strings.Repeat(" ", tabSpace)
+	indent := strings.Repeat(tab, lvl)
+
+	return fmt.Sprintf(
+		"ImediatlyAppliedFunctionE{\n%s%sParameter: %s,\n%s%sArgument: %s,\n%s%sBody: %s",
+		indent, tab, i.Parameter.pretty(tabSpace, lvl+1),
+		indent, tab, i.Argument.pretty(tabSpace, lvl+1),
+		indent, tab, i.Body.pretty(tabSpace, lvl+1),
+	)
+}
+
+func (i ImediatlyAppliedFunctionE) Pretty(tabSpace ...int) string {
+	var tab int
+	if len(tabSpace) > 0 {
+		tab = tabSpace[0]
+	} else {
+		tab = defaultTabStop
+	}
+	return i.pretty(tab, 0)
+}

@@ -118,7 +118,7 @@ func (p *parser) parseFirst() Expression {
 		if p.next() == errEOF { // go to ':', we must not hit errEOF her"e
 			return nil // this shouldn't happen -> malformed input
 		}
-		if p.at < len(p.in) && p.current().Kind == lex.TokenCOLON { //only real desirable option for now
+		if p.at < len(p.in) && p.current().Kind == lex.TokenCOLON { //"cannonical" lambda declaration
 			if p.next() == errEOF { //skip ':'
 				return nil // malformed input
 			}
@@ -132,6 +132,23 @@ func (p *parser) parseFirst() Expression {
 			if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_CURLY { //in the likelyhood of mark b5c9 @ ast/parser.go
 				p.next()
 				return LambdaE{ /*ParamId: p.newParamId(),*/ ParamName: name, Body: body}
+			} else if p.at < len(p.in) && p.current().Kind == lex.TokenEQUAL { //immediatly called lambda
+				if p.next() == errEOF { //skip "="
+					return nil //malformed input
+				}
+				if !p.current().IsTerminal() {
+					return nil //malformed input
+				}
+				value := p.parse(0)
+				body := p.parse(0)
+				if body == nil || value == nil {
+					return nil
+				}
+				return ImediatlyAppliedFunctionE{
+					Parameter: VariableE{Name: name},
+					Argument:  value,
+					Body:      body,
+				}
 			} else {
 				return nil
 			}

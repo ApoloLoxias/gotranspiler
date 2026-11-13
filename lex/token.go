@@ -44,6 +44,8 @@ const (
 
 	TokenCOLON TokenKind = "Colon"
 
+	TokenEQUAL TokenKind = "EqualSignTOken"
+
 	TokenUNDEFINED_SYMBOL TokenKind = "UndefinedSymbolToken"
 )
 

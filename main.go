@@ -137,26 +137,31 @@ func main() {
 		testTOKENS("{}:")
 		testTOKENS("x: {x+2}")
 	*/
+	/*
+		test("x {x+1} 2")
 
-	test("x {x+1} 2")
+		test("x: {0}")
+		test("y: {y}")
+		test("x: {y}")
+		test("x: {x + y:{y}}")
+		test("x: {x + x:{x}}")
 
-	test("x: {0}")
-	test("y: {y}")
-	test("x: {y}")
-	test("x: {x + y:{y}}")
-	test("x: {x + x:{x}}")
+		test("x: {0} 1")
+		test("y: {y} 1")
+		test("x: {y} 1")
+		test("x: {x + y:{y} 2} 1")
+		test("x: {x + x:{x} 2} 1")
 
-	test("x: {0} 1")
-	test("y: {y} 1")
-	test("x: {y} 1")
-	test("x: {x + y:{y} 2} 1")
-	test("x: {x + x:{x} 2} 1")
+		test("x: {y: {x} x: {x}}")
 
-	test("x: {y: {x} x: {x}}")
-
-	test("1 + (*$ -2 3) - -5")
-	test("1 + -$ 2 3")
-	test("+$ 1 - 2 3")
+		test("1 + (*$ -2 3) - -5")
+		test("1 + -$ 2 3")
+		test("+$ 1 - 2 3")
+	*/
+	test("x: {x}")
+	test("x {x}")
+	test("x {x} 1")
+	test("x=1: {x}")
 }
 
 /* ----------------------------- */
