@@ -113,15 +113,12 @@ func (p *parser) parseFirst() Expression {
 		// Parse's trailing token cehck won't catch unbalacned "("
 		// The following return is accessed by ending the input before closing all "("
 		return nil
-	case lex.TokenIDENTIFIER: //at least for now, identifiers will allways be followed by ':{', marking the start of a function/lambda appliedOperation
+	case lex.TokenIDENTIFIER:
 		name := first.Value
-		if p.next() == errEOF { // go to ':', we must not hit errEOF her"e
+		if p.next() == errEOF { //Next is either ":" for regular lambda or "=" for applied lambda
 			return nil // this shouldn't happen -> malformed input
 		}
-		if p.at < len(p.in) && p.current().Kind == lex.TokenCOLON { //only real desirable option for now
-			if p.next() == errEOF { //skip ':'
-				return nil // malformed input
-			}
+		if p.at < len(p.in) && p.current().Kind == lex.TokenCOLON { //regular lambda
 			if p.current().Kind != lex.TokenOPEN_CURLY || p.next() == errEOF { //skip "{"
 				return nil // malformed input
 			}
@@ -134,6 +131,43 @@ func (p *parser) parseFirst() Expression {
 				return LambdaE{ /*ParamId: p.newParamId(),*/ ParamName: name, Body: body}
 			} else {
 				return nil
+			}
+		}
+		if p.current().Kind == lex.TokenEQUAL_SIGN { //immediatly called function
+			if p.next() == errEOF {
+				return nil
+			}
+			arg := p.parse(0)
+			if p.current().Kind != lex.TokenCLOSE_CURLY {
+				return nil
+			}
+			if p.next() == errEOF {
+				return nil
+			}
+			if p.current().Kind != lex.TokenCOLON {
+				return nil
+			}
+			if p.next() == errEOF {
+				return nil
+			}
+			if p.current().Kind != lex.TokenOPEN_CURLY {
+				return nil
+			}
+			if p.next() == errEOF {
+				return nil
+			}
+			body := p.parse(0)
+			if body == nil {
+				return nil
+			}
+			if p.current().Kind == lex.TokenCLOSE_CURLY && p.next() != errEOF {
+				return AppliedLambdaE{
+					LambdaE{
+						ParamName: name,
+						Body:      body,
+					},
+					arg,
+				}
 			}
 		}
 

@@ -160,16 +160,17 @@ func main() {
 		test("+$ 1 - 2 3")
 	*/
 
-	testFromAST(
-		ast.AppliedLambdaE{
-			ast.LambdaE{
-				ParamName: "x",
-				ParamId:   0,
-				Body:      ast.VariableE{Name: "x", ID: 0},
-			},
-			ast.IntE{1},
-		},
-	)
+	//	testFromAST(
+	//		ast.AppliedLambdaE{
+	//			ast.LambdaE{
+	//				ParamName: "x",
+	///				ParamId:   0,
+	//				Body:      ast.VariableE{Name: "x", ID: 0},
+	//			},
+	//			ast.IntE{1},
+	//		},
+	//	)
+	test("x=1:{x}")
 }
 
 /* ----------------------------- */

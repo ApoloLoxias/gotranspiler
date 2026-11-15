@@ -30,6 +30,8 @@ const (
 
 	TokenEXCLAMATION TokenKind = "ExclamationPointToken"
 
+	TokenEQUAL_SIGN TokenKind = "EqualSignToken"
+
 	TokenASTERISK_ASTERISK TokenKind = "DoubleAsteriskToken"
 
 	TokenCROSS_FUNC         TokenKind = "PlusFuncToken"

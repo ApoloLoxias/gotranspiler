@@ -77,7 +77,7 @@ const (
 	runeUNKNOWN runeKind = "unkown rune"
 
 	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
-	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$!
+	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$=!
 	runeLETTER runeKind = "letter rune"
 
 	runePARENTHESIS runeKind = "parenthesis rune"
@@ -119,7 +119,7 @@ func isOperator(r rune) bool {
 	return false
 }
 
-var operatorCharacters = []rune("+-*/$!") // wish it were const
+var operatorCharacters = []rune("+-*/$!=") // wish it were const
 
 var (
 	runeCROSS         = rune("+"[0])
@@ -206,6 +206,9 @@ func lexSymbol(l *lexer) lexingFunction {
 		token.Kind = TokenASTERISK_FUNC
 	case "/$":
 		token.Kind = TokenFORWARD_SLASH_FUNC
+
+	case "=":
+		token.Kind = TokenEQUAL_SIGN
 
 	default:
 		token.Kind = TokenUNDEFINED_SYMBOL
