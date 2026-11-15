@@ -97,7 +97,7 @@ func (p *parser) parseFirst() Expression {
 		}
 
 		// mark b5c9
-		if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_PARENTHESIS { // toReturn is p.parseFirst(), because what follows "(" is a first, so we skip the infix loop, but than we don't really handle ")" in pareFirst() as we do in parse(0), so we handle it here
+		if p.at < len(p.in) && (p.current().Kind == lex.TokenCLOSE_PARENTHESIS || p.current().Kind == lex.TokenCOLON) { // toReturn is p.parseFirst(), because what follows "(" is a first, so we skip the infix loop, but than we don't really handle ")" in pareFirst() as we do in parse(0), so we handle it here
 			/*
 			* Note: I was going to compare handling ")" after exiting parseFirst to handling it before exiting parseFirst(i.e. in the parseFirst function)
 			* but this is already  the parseFirst function, and we are right bbefore return anyway
@@ -132,25 +132,34 @@ func (p *parser) parseFirst() Expression {
 			if p.at < len(p.in) && p.current().Kind == lex.TokenCLOSE_CURLY { //in the likelyhood of mark b5c9 @ ast/parser.go
 				p.next()
 				return LambdaE{ /*ParamId: p.newParamId(),*/ ParamName: name, Body: body}
-			} else if p.at < len(p.in) && p.current().Kind == lex.TokenEQUAL { //immediatly called lambda
-				if p.next() == errEOF { //skip "="
-					return nil //malformed input
-				}
-				if !p.current().IsTerminal() {
-					return nil //malformed input
-				}
-				value := p.parse(0)
-				body := p.parse(0)
-				if body == nil || value == nil {
-					return nil
-				}
-				return ImediatlyAppliedFunctionE{
-					Parameter: VariableE{Name: name},
-					Argument:  value,
-					Body:      body,
-				}
-			} else {
+			}
+			return nil
+		}
+		if p.at < len(p.in) && p.current().Kind == lex.TokenEQUAL { //immediatly called lambda
+			if p.next() == errEOF { //skip "="
+				return nil //malformed input
+			}
+			if !p.current().IsTerminal() {
+				return nil //malformed input
+			}
+			value := p.parse(0)
+			if p.next() == errEOF {
+				return nil //malformed input
+			}
+			if p.current().Kind != lex.TokenOPEN_CURLY {
+				return nil //malformed input
+			}
+			if p.next() == errEOF {
+				return nil // malformed input
+			}
+			body := p.parse(0)
+			if body == nil || value == nil {
 				return nil
+			}
+			return ImediatlyAppliedFunctionE{
+				Parameter: VariableE{Name: name},
+				Argument:  value,
+				Body:      body,
 			}
 		}
 
@@ -183,7 +192,10 @@ func (p *parser) parse(previousPriority int) Expression {
 
 		switch {
 		//End of Expression branch
-		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS || currentToken.Kind == lex.TokenCLOSE_CURLY:
+		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS || currentToken.Kind == lex.TokenCOLON:
+			return parsed
+		case currentToken.Kind == lex.TokenCLOSE_CURLY:
+			p.next()
 			return parsed
 
 			//Application/juxtaposition branch
