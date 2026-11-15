@@ -138,25 +138,38 @@ func main() {
 		testTOKENS("x: {x+2}")
 	*/
 
-	test("x {x+1} 2")
+	/*
+		test("x {x+1} 2")
 
-	test("x: {0}")
-	test("y: {y}")
-	test("x: {y}")
-	test("x: {x + y:{y}}")
-	test("x: {x + x:{x}}")
+		test("x: {0}")
+		test("y: {y}")
+		test("x: {y}")
+		test("x: {x + y:{y}}")
+		test("x: {x + x:{x}}")
 
-	test("x: {0} 1")
-	test("y: {y} 1")
-	test("x: {y} 1")
-	test("x: {x + y:{y} 2} 1")
-	test("x: {x + x:{x} 2} 1")
+		test("x: {0} 1")
+		test("y: {y} 1")
+		test("x: {y} 1")
+		test("x: {x + y:{y} 2} 1")
+		test("x: {x + x:{x} 2} 1")
 
-	test("x: {y: {x} x: {x}}")
+		test("x: {y: {x} x: {x}}")
 
-	test("1 + (*$ -2 3) - -5")
-	test("1 + -$ 2 3")
-	test("+$ 1 - 2 3")
+		test("1 + (*$ -2 3) - -5")
+		test("1 + -$ 2 3")
+		test("+$ 1 - 2 3")
+	*/
+
+	testFromAST(
+		ast.AppliedLambdaE{
+			ast.LambdaE{
+				ParamName: "x",
+				ParamId:   0,
+				Body:      ast.VariableE{Name: "x", ID: 0},
+			},
+			ast.IntE{1},
+		},
+	)
 }
 
 /* ----------------------------- */
@@ -244,4 +257,12 @@ func printTitle(name string) {
 		buffer, name, buffer, "\n",
 		"========================\n",
 	)
+}
+
+func testFromAST(expr ast.Expression) {
+	expr, err := ast.Resolve(expr)
+	fmt.Println(err)
+	fmt.Println(expr)
+	expr = expr.Evaluate(map[int]ast.Expression{})
+	fmt.Println(expr)
 }

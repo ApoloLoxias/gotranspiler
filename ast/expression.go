@@ -345,3 +345,48 @@ func (v VariableE) Pretty(tabSpace ...int) string {
 	}
 	return v.pretty(tab, 0)
 }
+
+/* --- */
+
+type AppliedLambdaE struct {
+	LambdaE
+	Argument Expression
+}
+
+func (a AppliedLambdaE) Evaluate(scope map[int]Expression) Expression {
+	desugared := ApplicationE{
+		Function: LambdaE{
+			ParamName: a.ParamName,
+			ParamId:   a.ParamId,
+			Body:      a.Body,
+		},
+		Argument: a.Argument,
+	}
+
+	return desugared.Evaluate(scope)
+}
+
+func (a AppliedLambdaE) String() string {
+	return fmt.Sprintf("AppLambdaE{ParamName: '%s', ParamId: %d, Body: %s, Argument: %s}", a.ParamName, a.ParamId, a.Body, a.Argument)
+}
+
+func (a AppliedLambdaE) pretty(tabSpace, lvl int) string {
+	tab := strings.Repeat(" ", tabSpace)
+	indent := strings.Repeat(tab, lvl)
+
+	return fmt.Sprintf(
+		"AppLambdaE{\n%s%sParamName: %s,\n%s%sParamId: %d,\n%s%sBody: %s,\n%s%sArgument: %s,\n}",
+		indent, tab, a.ParamName,
+		indent, tab, a.ParamId,
+		indent, tab, a.Body.Pretty(),
+		indent, tab, a.Argument.Pretty(),
+	)
+}
+
+func (a AppliedLambdaE) Pretty(tabSpace ...int) string {
+	tab := defaultTabStop
+	if len(tabSpace) > 0 {
+		tab = tabSpace[0]
+	}
+	return a.pretty(tab, 0)
+}

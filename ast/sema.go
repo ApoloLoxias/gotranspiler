@@ -86,6 +86,20 @@ func (a *analyzer) resolve(E Expression) (Expression, error) {
 			return nil, fmt.Errorf("unbound var %v", e)
 		}
 		return e, nil
+	case AppliedLambdaE:
+		var err error
+		e.ParamId = a.nextID()
+		a.push(e.LambdaE)
+		e.Body, err = a.resolve(e.Body)
+		if err != nil {
+			return nil, err
+		}
+		e.Argument, err = a.resolve(e.Argument)
+		if err != nil {
+			return nil, err
+		}
+		a.pop()
+		return e, nil
 	default:
 		return nil, fmt.Errorf("ast contains expression of unkown type (%T) of unimplemented semantic analysis", E)
 	}
