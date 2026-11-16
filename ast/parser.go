@@ -138,10 +138,7 @@ func (p *parser) parseFirst() Expression {
 				return nil
 			}
 			arg := p.parse(0)
-			if p.current().Kind != lex.TokenCLOSE_CURLY {
-				return nil
-			}
-			if p.next() == errEOF {
+			if arg == nil {
 				return nil
 			}
 			if p.current().Kind != lex.TokenCOLON {
@@ -160,7 +157,8 @@ func (p *parser) parseFirst() Expression {
 			if body == nil {
 				return nil
 			}
-			if p.current().Kind == lex.TokenCLOSE_CURLY && p.next() != errEOF {
+			if p.current().Kind == lex.TokenCLOSE_CURLY {
+				p.next()
 				return AppliedLambdaE{
 					LambdaE{
 						ParamName: name,
@@ -200,7 +198,7 @@ func (p *parser) parse(previousPriority int) Expression {
 
 		switch {
 		//End of Expression branch
-		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS || currentToken.Kind == lex.TokenCLOSE_CURLY:
+		case currentToken.Kind == lex.TokenCLOSE_PARENTHESIS || currentToken.Kind == lex.TokenCLOSE_CURLY || currentToken.Kind == lex.TokenCOLON:
 			return parsed
 
 			//Application/juxtaposition branch
