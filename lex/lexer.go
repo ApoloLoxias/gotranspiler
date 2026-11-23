@@ -77,7 +77,7 @@ const (
 	runeUNKNOWN runeKind = "unkown rune"
 
 	runeDIGIT  runeKind = "numeric rune"                      // 0123456789
-	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$=!
+	runeSYMBOL runeKind = "Arithmetic operation synmbol rune" // +-/*$=!>
 	runeLETTER runeKind = "letter rune"
 
 	runePARENTHESIS runeKind = "parenthesis rune"
@@ -119,7 +119,7 @@ func isOperator(r rune) bool {
 	return false
 }
 
-var operatorCharacters = []rune("+-*/$!=") // wish it were const
+var operatorCharacters = []rune("+-*/$!:=>") // wish it were const
 
 var (
 	runeCROSS         = rune("+"[0])
@@ -138,6 +138,8 @@ var (
 	runeCLOSE_CURLY = rune("}"[0])
 
 	runeCOLON = rune(":"[0])
+
+	runeGREATER = rune(">"[0])
 )
 
 /* --- LEXING FUNCTIONS --- */
@@ -209,6 +211,13 @@ func lexSymbol(l *lexer) lexingFunction {
 
 	case "=":
 		token.Kind = TokenEQUAL_SIGN
+	case "::":
+		token.Kind = TokenCOLON_COLON
+	case ":":
+		token.Kind = TokenCOLON
+
+	case "->":
+		token.Kind = TokenHYPHEN_GT
 
 	default:
 		token.Kind = TokenUNDEFINED_SYMBOL
@@ -218,13 +227,18 @@ func lexSymbol(l *lexer) lexingFunction {
 
 	var nextFunc lexingFunction
 	if err != errEOF {
-		nextFunc = lexNumOrParen
+		if token.Kind == TokenCOLON_COLON || token.Kind == TokenHYPHEN_GT {
+			nextFunc = lexIdentifier
+		} else {
+			nextFunc = lexNumOrParen
+		}
 	}
 
 	return nextFunc
 }
 
 func lexNumOrParen(l *lexer) lexingFunction {
+
 	if l.current == runeOPEN_PARENTHESIS {
 		l.produceToken(l.at, l.width, TokenOPEN_PARENTHESIS)
 		err := l.next()
@@ -259,13 +273,8 @@ func lexNumOrParen(l *lexer) lexingFunction {
 		return lexNumOrParen
 	}
 
-	if l.current == runeCOLON {
-		l.produceToken(l.at, l.width, TokenCOLON)
-		err := l.next()
-		if err == errEOF {
-			return nil
-		}
-		return lexNumOrParen
+	if l.currentKind() == runeSYMBOL {
+		return lexSymbol
 	}
 
 	if l.currentKind() == runeLETTER {
@@ -288,9 +297,9 @@ func lexIdentifier(l *lexer) lexingFunction {
 			return nil
 		}
 
-		if totalWidth != 0 {
-			l.produceToken(startAt, totalWidth, TokenIDENTIFIER)
-		}
+	}
+	if totalWidth != 0 {
+		l.produceToken(startAt, totalWidth, TokenIDENTIFIER)
 	}
 
 	return lexNumOrParen

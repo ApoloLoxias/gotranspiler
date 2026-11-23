@@ -44,7 +44,10 @@ const (
 	TokenOPEN_CURLY        TokenKind = "OpenCurlyBrace"
 	TokenCLOSE_CURLY       TokenKind = "CloseCurlyBrace"
 
-	TokenCOLON TokenKind = "Colon"
+	TokenCOLON       TokenKind = "Colon"
+	TokenCOLON_COLON TokenKind = "DoubleColonToken"
+
+	TokenHYPHEN_GT TokenKind = "RightArrowToken"
 
 	TokenUNDEFINED_SYMBOL TokenKind = "UndefinedSymbolToken"
 )
@@ -82,25 +85,29 @@ var InfixTokens = []TokenKind{ //const
 	TokenASTERISK,
 	TokenFORWARD_SLASH,
 	TokenASTERISK_ASTERISK,
+	TokenCOLON_COLON,
 }
 
 var InfixPriority = map[TokenKind]int{ //const
-	TokenCROSS:         1,
-	TokenHYPHEN:        1,
-	TokenASTERISK:      2,
-	TokenFORWARD_SLASH: 2,
+	TokenCOLON_COLON: 1,
+	TokenHYPHEN_GT:   2,
 
-	TokenASTERISK_ASTERISK: 4,
+	TokenCROSS:         3,
+	TokenHYPHEN:        3,
+	TokenASTERISK:      4,
+	TokenFORWARD_SLASH: 4,
+
+	TokenASTERISK_ASTERISK: 6,
 }
 
-const ApplicationPriority int = 5
+const ApplicationPriority int = 7
 
 var PrefixTokens = []TokenKind{ //const
 	TokenHYPHEN,
 }
 
 var PrefixPriority = map[TokenKind]int{ //const
-	TokenHYPHEN: 3,
+	TokenHYPHEN: 5,
 }
 
 var SuffixTokens = []TokenKind{ //const
@@ -108,7 +115,7 @@ var SuffixTokens = []TokenKind{ //const
 }
 
 var SuffixPriority = map[TokenKind]int{ //const
-	TokenEXCLAMATION: 6,
+	TokenEXCLAMATION: 8,
 }
 
 // Firsts can start an expression
