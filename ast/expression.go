@@ -17,12 +17,15 @@ type Expression interface {
 	Pretty(...int) string   //variadic as a trick for allowing a default value
 
 	Type() TypeE //Expressions have types, which are expressions
+	SetType(TypeE) (Expression, error)
 }
 
 type assignment struct{ id int }
 
 // pretty-printing configuration
 const defaultTabStop = 8
+
+var TypeErr = errors.New("Invalid Type assignment")
 
 /* --- Primitive Expressions ---*/
 // A primitive is interpreted as a constant function that allways returns itself
@@ -56,6 +59,13 @@ func (i IntE) Type() TypeE {
 	return TypeE{
 		Simple: TypeINT,
 	}
+}
+
+func (i IntE) SetType(t TypeE) (Expression, error) {
+	if t.Simple != TypeINT {
+		return i, TypeErr
+	}
+	return i, nil
 }
 
 // Function application
@@ -114,6 +124,17 @@ func (a ApplicationE) Type() TypeE {
 	return a.T
 }
 
+func (a ApplicationE) SetType(t TypeE) (Expression, error) {
+	if (a.T.Simple == "" && a.T.Compound == nil) || a.T.Simple == TypeNO_TYPE {
+		a.T = t
+		return a, nil
+	}
+	if !a.T.EqualTo(t) {
+		return a, TypeErr
+	}
+	return a, nil
+}
+
 // Native/standard/pre-defined functions
 // Include arithmetic operators, be they infix, suffix or prefix
 type BuiltInFunc struct {
@@ -146,6 +167,20 @@ func (f BuiltInFunc) Type() TypeE {
 		Simple:   TypeCOMPOUND,
 		Compound: []TypeE{TypeE{Simple: TypeINT}, TypeE{Simple: TypeINT}},
 	}
+}
+
+func (f BuiltInFunc) SetType(t TypeE) (Expression, error) {
+	if t.EqualTo(TypeE{
+		Simple: TypeCOMPOUND,
+		Compound: []TypeE{TypeE{
+			Simple: TypeINT,
+		}, TypeE{
+			Simple: TypeINT,
+		},
+		}}) {
+		return f, nil
+	}
+	return f, TypeErr
 }
 
 /* --- BUILTIN OPERATORS --- */
@@ -340,6 +375,17 @@ func (l LambdaE) Type() TypeE {
 	return l.T
 }
 
+func (l LambdaE) SetType(t TypeE) (Expression, error) {
+	if l.T.Simple == TypeNO_TYPE || (l.T.Simple == "" && l.T.Compound == nil) {
+		l.T = t
+		return l, nil
+	}
+	if l.T.EqualTo(t) {
+		return l, nil
+	}
+	return l, TypeErr
+}
+
 /* --- */
 
 type VariableE struct {
@@ -375,6 +421,21 @@ func (v VariableE) Pretty(tabSpace ...int) string {
 
 func (v VariableE) Type() TypeE {
 	return v.T
+}
+
+func (v VariableE) SetType(t TypeE) (Expression, error) {
+	if v.T.Simple == TypeNO_TYPE {
+		v.T = t
+		return v, nil
+	}
+	if v.T.Simple == "" && v.T.Compound == nil {
+		v.T = t
+		return v, nil
+	}
+	if v.T.EqualTo(t) {
+		return v, nil
+	}
+	return v, TypeErr
 }
 
 /* --- */
@@ -426,6 +487,17 @@ func (a AppliedLambdaE) Pretty(tabSpace ...int) string {
 
 func (a AppliedLambdaE) Type() TypeE {
 	return a.T
+}
+
+func (a AppliedLambdaE) SetType(t TypeE) (Expression, error) {
+	if a.T.Simple == TypeNO_TYPE || (a.T.Simple == "" && a.T.Compound == nil) {
+		a.T = t
+		return a, nil
+	}
+	if a.T.EqualTo(t) {
+		return a, nil
+	}
+	return a, TypeErr
 }
 
 /* --- */
@@ -493,4 +565,23 @@ func (t TypeE) Type() TypeE {
 	return TypeE{
 		Simple: TypeTYPE,
 	}
+}
+
+func (t TypeE) EqualTo(T TypeE) bool {
+	if t.Simple != T.Simple {
+		return false
+	}
+	for i, ti := range t.Compound {
+		if !ti.EqualTo(T.Compound[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func (t TypeE) SetType(T TypeE) (Expression, error) {
+	if T.Simple == TypeTYPE {
+		return t, nil
+	}
+	return t, TypeErr
 }
