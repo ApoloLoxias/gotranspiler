@@ -40,13 +40,13 @@ var manualCases = []manualTest{
 		In: LambdaE{
 			ParamName: "y",
 			ParamId:   0,
-			Body:      VariableE{"y", 0},
+			Body:      VariableE{Name: "y", ID: 0},
 		},
 		Err: false,
 		Want: LambdaE{
 			ParamName: "y",
 			ParamId:   1,
-			Body:      VariableE{"y", 1},
+			Body:      VariableE{Name: "y", ID: 1},
 		},
 	},
 	{
@@ -54,7 +54,7 @@ var manualCases = []manualTest{
 		In: LambdaE{
 			ParamName: "x",
 			ParamId:   0,
-			Body:      VariableE{"y", 0},
+			Body:      VariableE{Name: "y", ID: 0},
 		},
 		Err: true,
 	},
@@ -66,12 +66,12 @@ var manualCases = []manualTest{
 			Body: ApplicationE{
 				Function: ApplicationE{
 					Function: Sum,
-					Argument: VariableE{"x", 0},
+					Argument: VariableE{Name: "x", ID: 0},
 				},
 				Argument: LambdaE{
 					ParamName: "y",
 					ParamId:   0,
-					Body:      VariableE{"y", 0},
+					Body:      VariableE{Name: "y", ID: 0},
 				},
 			},
 		},
@@ -82,12 +82,12 @@ var manualCases = []manualTest{
 			Body: ApplicationE{
 				Function: ApplicationE{
 					Function: Sum,
-					Argument: VariableE{"x", 1},
+					Argument: VariableE{Name: "x", ID: 1},
 				},
 				Argument: LambdaE{
 					ParamName: "y",
 					ParamId:   2,
-					Body:      VariableE{"y", 2},
+					Body:      VariableE{Name: "y", ID: 2},
 				},
 			},
 		},
@@ -100,12 +100,12 @@ var manualCases = []manualTest{
 			Body: ApplicationE{
 				Function: ApplicationE{
 					Function: Sum,
-					Argument: VariableE{"x", 0},
+					Argument: VariableE{Name: "x", ID: 0},
 				},
 				Argument: LambdaE{
 					ParamName: "x",
 					ParamId:   0,
-					Body:      VariableE{"x", 0},
+					Body:      VariableE{Name: "x", ID: 0},
 				},
 			},
 		},
@@ -116,12 +116,12 @@ var manualCases = []manualTest{
 			Body: ApplicationE{
 				Function: ApplicationE{
 					Function: Sum,
-					Argument: VariableE{"x", 1},
+					Argument: VariableE{Name: "x", ID: 1},
 				},
 				Argument: LambdaE{
 					ParamName: "x",
 					ParamId:   2,
-					Body:      VariableE{"x", 2},
+					Body:      VariableE{Name: "x", ID: 2},
 				},
 			},
 		},
@@ -135,12 +135,12 @@ var manualCases = []manualTest{
 				Function: LambdaE{
 					ParamName: "y",
 					ParamId:   0,
-					Body:      VariableE{"x", 0},
+					Body:      VariableE{Name: "x", ID: 0},
 				},
 				Argument: LambdaE{
 					ParamName: "x",
 					ParamId:   0,
-					Body:      VariableE{"x", 0},
+					Body:      VariableE{Name: "x", ID: 0},
 				},
 			},
 		},
@@ -152,12 +152,12 @@ var manualCases = []manualTest{
 				Function: LambdaE{
 					ParamName: "y",
 					ParamId:   3,
-					Body:      VariableE{"x", 1},
+					Body:      VariableE{Name: "x", ID: 1},
 				},
 				Argument: LambdaE{
 					ParamName: "x",
 					ParamId:   2,
-					Body:      VariableE{"x", 2},
+					Body:      VariableE{Name: "x", ID: 2},
 				},
 			},
 		},
@@ -168,16 +168,16 @@ var manualCases = []manualTest{
 			ParamName: "x",
 			ParamId:   0,
 			Body: ApplicationE{
-				Function: ApplicationE{Sum, VariableE{"x", 0}},
+				Function: ApplicationE{Function: Sum, Argument: VariableE{Name: "x", ID: 0}},
 				Argument: LambdaE{
 					ParamName: "x",
 					ParamId:   0,
 					Body: ApplicationE{
-						Function: ApplicationE{Sum, VariableE{"x", 0}},
+						Function: ApplicationE{Function: Sum, Argument: VariableE{Name: "x", ID: 0}},
 						Argument: LambdaE{
 							ParamName: "x",
 							ParamId:   0,
-							Body:      VariableE{"x", 0},
+							Body:      VariableE{Name: "x", ID: 0},
 						},
 					},
 				},
@@ -188,16 +188,16 @@ var manualCases = []manualTest{
 			ParamName: "x",
 			ParamId:   1,
 			Body: ApplicationE{
-				Function: ApplicationE{Sum, VariableE{"x", 1}},
+				Function: ApplicationE{Function: Sum, Argument: VariableE{Name: "x", ID: 1}},
 				Argument: LambdaE{
 					ParamName: "x",
 					ParamId:   2,
 					Body: ApplicationE{
-						Function: ApplicationE{Sum, VariableE{"x", 2}},
+						Function: ApplicationE{Function: Sum, Argument: VariableE{Name: "x", ID: 2}},
 						Argument: LambdaE{
 							ParamName: "x",
 							ParamId:   3,
-							Body:      VariableE{"x", 3},
+							Body:      VariableE{Name: "x", ID: 3},
 						},
 					},
 				},

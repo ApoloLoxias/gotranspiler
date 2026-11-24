@@ -15,6 +15,8 @@ type Expression interface {
 	String() string
 	pretty(int, int) string //helper for Pretty
 	Pretty(...int) string   //variadic as a trick for allowing a default value
+
+	Type() TypeE //Expressions have types, which are expressions
 }
 
 type assignment struct{ id int }
@@ -50,11 +52,19 @@ func (i IntE) Pretty(tabSpace ...int) string {
 	return i.pretty(tab, 0)
 }
 
+func (i IntE) Type() TypeE {
+	return TypeE{
+		Simple: TypeINT,
+	}
+}
+
 // Function application
 // includes arithmetic expressions, be they prefix, infix or postfix operations
 type ApplicationE struct {
 	Function Expression
 	Argument Expression
+
+	T TypeE
 }
 
 func (a ApplicationE) Evaluate(scope map[int]Expression) Expression { //TODO
@@ -82,14 +92,14 @@ func (a ApplicationE) Evaluate(scope map[int]Expression) Expression { //TODO
 }
 
 func (a ApplicationE) String() string {
-	return fmt.Sprintf("ApplicationE{Function: %s, Argument: %s}", a.Function, a.Argument)
+	return fmt.Sprintf("ApplicationE{Function: %s, Argument: %s, Type: %s}", a.Function, a.Argument, a.T)
 }
 
 func (a ApplicationE) pretty(tabSpace, lvl int) string {
 	tab := strings.Repeat(" ", tabSpace)
 	indent := strings.Repeat(tab, lvl)
 
-	return fmt.Sprintf("ApplicationE{\n%s%sFunction: %s,\n%s%sArgument: %s,\n%s}", indent, tab, a.Function.pretty(tabSpace, lvl+1), indent, tab, a.Argument.pretty(tabSpace, lvl+1), indent)
+	return fmt.Sprintf("ApplicationE{\n%s%sFunction: %s,\n%s%sArgument: %s,\n%s%sType: %s\n}", indent, tab, a.Function.pretty(tabSpace, lvl+1), indent, tab, a.Argument.pretty(tabSpace, lvl+1), indent, tab, a.T.pretty(tabSpace, lvl+1))
 }
 
 func (a ApplicationE) Pretty(tabsSpace ...int) string {
@@ -98,6 +108,10 @@ func (a ApplicationE) Pretty(tabsSpace ...int) string {
 		tab = tabsSpace[0]
 	}
 	return a.pretty(tab, 0)
+}
+
+func (a ApplicationE) Type() TypeE {
+	return a.T
 }
 
 // Native/standard/pre-defined functions
@@ -125,6 +139,13 @@ func (f BuiltInFunc) Pretty(tabSpace ...int) string {
 		tab = tabSpace[0]
 	}
 	return f.pretty(tab, 0)
+}
+
+func (f BuiltInFunc) Type() TypeE {
+	return TypeE{
+		Simple:   TypeCOMPOUND,
+		Compound: []TypeE{TypeE{Simple: TypeINT}, TypeE{Simple: TypeINT}},
+	}
 }
 
 /* --- BUILTIN OPERATORS --- */
@@ -285,6 +306,7 @@ type LambdaE struct {
 	ParamName string //metadata about the source code
 	ParamId   int
 	Body      Expression
+	T         TypeE
 }
 
 func (l LambdaE) Evaluate(scope map[int]Expression) Expression {
@@ -296,14 +318,14 @@ func (l LambdaE) Evaluate(scope map[int]Expression) Expression {
 }
 
 func (l LambdaE) String() string {
-	return fmt.Sprintf("LambdaE{ParamName: %s, ParamId: %d, Body: %v}", l.ParamName, l.ParamId, l.Body)
+	return fmt.Sprintf("LambdaE{ParamName: %s, ParamId: %d, Body: %v, Type: %s}", l.ParamName, l.ParamId, l.Body, l.T)
 }
 
 func (l LambdaE) pretty(tabSpace, lvl int) string {
 	tab := strings.Repeat(" ", tabSpace)
 	indent := strings.Repeat(tab, lvl)
 
-	return fmt.Sprintf("LambdaE{\n%s%sParamName %s,\n%s%sParamId %d,\n%s%sBody %v,\n}", indent, tab, l.ParamName, indent, tab, l.ParamId, indent, tab, l.Body.pretty(tabSpace, lvl+1))
+	return fmt.Sprintf("LambdaE{\n%s%sParamName %s,\n%s%sParamId %d,\n%s%sBody %v,\n%s%sType: %s\n}", indent, tab, l.ParamName, indent, tab, l.ParamId, indent, tab, l.Body.pretty(tabSpace, lvl+1), indent, tab, l.T.pretty(tabSpace, lvl+1))
 }
 
 func (l LambdaE) Pretty(tabSpace ...int) string {
@@ -314,11 +336,16 @@ func (l LambdaE) Pretty(tabSpace ...int) string {
 	return l.pretty(tab, 0)
 }
 
+func (l LambdaE) Type() TypeE {
+	return l.T
+}
+
 /* --- */
 
 type VariableE struct {
 	Name string
 	ID   int
+	T    TypeE
 }
 
 func (v VariableE) Evaluate(scope map[int]Expression) Expression {
@@ -331,11 +358,11 @@ func (v VariableE) Evaluate(scope map[int]Expression) Expression {
 }
 
 func (v VariableE) String() string {
-	return fmt.Sprintf("VariableE{Name: %s; ID: %d}", v.Name, v.ID)
+	return fmt.Sprintf("VariableE{Name: %s; ID: %d; Type: %s}", v.Name, v.ID, v.T)
 }
 
 func (v VariableE) pretty(tabSpace, lvl int) string {
-	return fmt.Sprintf("VariableE{Name: %s; ID: %d}", v.Name, v.ID)
+	return fmt.Sprintf("VariableE{Name: %s; ID: %d; Type: %s}", v.Name, v.ID, v.T)
 }
 
 func (v VariableE) Pretty(tabSpace ...int) string {
@@ -344,6 +371,10 @@ func (v VariableE) Pretty(tabSpace ...int) string {
 		tab = tabSpace[0]
 	}
 	return v.pretty(tab, 0)
+}
+
+func (v VariableE) Type() TypeE {
+	return v.T
 }
 
 /* --- */
@@ -359,6 +390,7 @@ func (a AppliedLambdaE) Evaluate(scope map[int]Expression) Expression {
 			ParamName: a.ParamName,
 			ParamId:   a.ParamId,
 			Body:      a.Body,
+			T:         a.T,
 		},
 		Argument: a.Argument,
 	}
@@ -367,7 +399,7 @@ func (a AppliedLambdaE) Evaluate(scope map[int]Expression) Expression {
 }
 
 func (a AppliedLambdaE) String() string {
-	return fmt.Sprintf("AppLambdaE{ParamName: '%s', ParamId: %d, Body: %s, Argument: %s}", a.ParamName, a.ParamId, a.Body, a.Argument)
+	return fmt.Sprintf("AppLambdaE{ParamName: '%s', ParamId: %d, Body: %s, Argument: %s, Type: %s}", a.ParamName, a.ParamId, a.Body, a.Argument, a.T)
 }
 
 func (a AppliedLambdaE) pretty(tabSpace, lvl int) string {
@@ -375,11 +407,12 @@ func (a AppliedLambdaE) pretty(tabSpace, lvl int) string {
 	indent := strings.Repeat(tab, lvl)
 
 	return fmt.Sprintf(
-		"AppLambdaE{\n%s%sParamName: %s,\n%s%sParamId: %d,\n%s%sBody: %s,\n%s%sArgument: %s,\n}",
+		"AppLambdaE{\n%s%sParamName: %s,\n%s%sParamId: %d,\n%s%sBody: %s,\n%s%sArgument: %s,\n%s$%sType: %s\n}",
 		indent, tab, a.ParamName,
 		indent, tab, a.ParamId,
-		indent, tab, a.Body.Pretty(),
-		indent, tab, a.Argument.Pretty(),
+		indent, tab, a.Body.pretty(tabSpace, lvl+1),
+		indent, tab, a.Argument.pretty(tabSpace, lvl+1),
+		indent, tab, a.T.pretty(tabSpace, lvl+1),
 	)
 }
 
@@ -389,4 +422,75 @@ func (a AppliedLambdaE) Pretty(tabSpace ...int) string {
 		tab = tabSpace[0]
 	}
 	return a.pretty(tab, 0)
+}
+
+func (a AppliedLambdaE) Type() TypeE {
+	return a.T
+}
+
+/* --- */
+type TypeE struct {
+	Compound []TypeE
+	Simple   SimpleType
+}
+
+type SimpleType string
+
+const (
+	TypeNO_TYPE  SimpleType = "untyped"
+	TypeCOMPOUND SimpleType = "notASimpleType"
+	TypeTYPE     SimpleType = "typeType"
+	TypeINT      SimpleType = "intgerType"
+)
+
+func (t TypeE) Evaluate(scope map[int]Expression) Expression {
+	return t
+}
+
+func (t TypeE) String() string {
+	if t.Simple == TypeCOMPOUND {
+		return fmt.Sprintf("TypeE{%s}", t.Compound)
+	}
+	return fmt.Sprintf("TypeE{%s}", t.Simple)
+}
+
+func (t TypeE) pretty(tabSpace, lvl int) string {
+	//tab := strings.Repeat(" ", tabSpace)
+	//indent := strings.Repeat(tab, lvl)
+
+	if t.Compound == nil {
+		return fmt.Sprintf("%s", t.Simple)
+	}
+	return fmt.Sprintf("%s", emprettyCompoundType(t.Compound))
+}
+func emprettyCompoundType(tt []TypeE) string {
+	var result string
+	for i, t := range tt {
+		if t.Compound == nil {
+			result += string(t.Simple)
+			if i < len(tt) {
+				result += "->"
+			}
+		} else {
+			result += "(" + emprettyCompoundType(t.Compound) + ")"
+			if i < len(tt) {
+				result += "->"
+			}
+		}
+	}
+	return result
+}
+
+func (t TypeE) Pretty(tabsSpace ...int) string {
+	tab := defaultTabStop
+	if len(tabsSpace) > 0 {
+		tab = tabsSpace[0]
+	}
+	return t.pretty(tab, 0)
+}
+
+func (t TypeE) Type() TypeE {
+	return TypeE{
+		Simple: TypeTYPE,
+	}
 }
