@@ -56,16 +56,14 @@ func (i IntE) Pretty(tabSpace ...int) string {
 }
 
 func (i IntE) Type() TypeE {
-	return TypeE{
-		Simple: TypeINT,
-	}
+	return TypeInt
 }
 
 func (i IntE) SetType(t TypeE) (Expression, error) {
-	if t.Simple != TypeINT {
-		return i, TypeErr
+	if t.EqualTo(TypeInt) {
+		return i, nil
 	}
-	return i, nil
+	return i, TypeErr
 }
 
 // Function application
@@ -121,15 +119,21 @@ func (a ApplicationE) Pretty(tabsSpace ...int) string {
 }
 
 func (a ApplicationE) Type() TypeE {
+	if a.T.Kind == "" {
+		return TypeE{Kind: TypeNO_TYPE}
+	}
 	return a.T
 }
 
 func (a ApplicationE) SetType(t TypeE) (Expression, error) {
-	if (a.T.Simple == "" && a.T.Compound == nil) || a.T.Simple == TypeNO_TYPE {
+	if t.Kind != TypeCOMPOUND {
+		return a, TypeErr
+	}
+	if a.Type() == TypeUntyped {
 		a.T = t
 		return a, nil
 	}
-	if !a.T.EqualTo(t) {
+	if !a.Type().EqualTo(t) {
 		return a, TypeErr
 	}
 	return a, nil
@@ -164,23 +168,21 @@ func (f BuiltInFunc) Pretty(tabSpace ...int) string {
 
 func (f BuiltInFunc) Type() TypeE {
 	return TypeE{
-		Simple:   TypeCOMPOUND,
-		Compound: []TypeE{TypeE{Simple: TypeINT}, TypeE{Simple: TypeINT}},
+		Kind:   TypeCOMPOUND,
+		Param:  &TypeInt,
+		Return: &TypeInt,
 	}
 }
 
 func (f BuiltInFunc) SetType(t TypeE) (Expression, error) {
-	if t.EqualTo(TypeE{
-		Simple: TypeCOMPOUND,
-		Compound: []TypeE{TypeE{
-			Simple: TypeINT,
-		}, TypeE{
-			Simple: TypeINT,
-		},
-		}}) {
-		return f, nil
+	if !t.EqualTo(TypeE{
+		Kind:   TypeCOMPOUND,
+		Param:  &TypeInt,
+		Return: &TypeInt,
+	}) {
+		return f, TypeErr
 	}
-	return f, TypeErr
+	return f, nil
 }
 
 /* --- BUILTIN OPERATORS --- */
@@ -372,15 +374,21 @@ func (l LambdaE) Pretty(tabSpace ...int) string {
 }
 
 func (l LambdaE) Type() TypeE {
+	if l.T.Kind == "" || l.T.Kind == TypeNO_TYPE {
+		return TypeUntyped
+	}
 	return l.T
 }
 
 func (l LambdaE) SetType(t TypeE) (Expression, error) {
-	if l.T.Simple == TypeNO_TYPE || (l.T.Simple == "" && l.T.Compound == nil) {
+	if t.Kind != TypeCOMPOUND {
+		return l, TypeErr
+	}
+	if l.Type().Kind == TypeNO_TYPE {
 		l.T = t
 		return l, nil
 	}
-	if l.T.EqualTo(t) {
+	if l.Type().EqualTo(t) {
 		return l, nil
 	}
 	return l, TypeErr
@@ -420,19 +428,18 @@ func (v VariableE) Pretty(tabSpace ...int) string {
 }
 
 func (v VariableE) Type() TypeE {
+	if v.T.Kind == "" || v.T.Kind == TypeNO_TYPE {
+		return TypeUntyped
+	}
 	return v.T
 }
 
 func (v VariableE) SetType(t TypeE) (Expression, error) {
-	if v.T.Simple == TypeNO_TYPE {
+	if v.Type().EqualTo(TypeUntyped) {
 		v.T = t
 		return v, nil
 	}
-	if v.T.Simple == "" && v.T.Compound == nil {
-		v.T = t
-		return v, nil
-	}
-	if v.T.EqualTo(t) {
+	if v.Type() == t {
 		return v, nil
 	}
 	return v, TypeErr
@@ -486,33 +493,40 @@ func (a AppliedLambdaE) Pretty(tabSpace ...int) string {
 }
 
 func (a AppliedLambdaE) Type() TypeE {
+	if a.T.Kind == "" || a.T.Kind == TypeNO_TYPE {
+		return TypeUntyped
+	}
 	return a.T
 }
 
 func (a AppliedLambdaE) SetType(t TypeE) (Expression, error) {
-	if a.T.Simple == TypeNO_TYPE || (a.T.Simple == "" && a.T.Compound == nil) {
+	if t.Kind != TypeCOMPOUND {
+		return a, TypeErr
+	}
+	if a.Type().EqualTo(TypeUntyped) {
 		a.T = t
 		return a, nil
 	}
-	if a.T.EqualTo(t) {
+	if a.Type().EqualTo(t) {
 		return a, nil
 	}
-	return a, TypeErr
+	return nil, TypeErr
 }
 
 /* --- */
 type TypeE struct {
-	Compound []TypeE
-	Simple   SimpleType
+	Param  *TypeE
+	Return *TypeE
+	Kind   TypeKind
 }
 
-type SimpleType string
+type TypeKind string
 
 const (
-	TypeNO_TYPE  SimpleType = "untyped"
-	TypeCOMPOUND SimpleType = "notASimpleType"
-	TypeTYPE     SimpleType = "typeType"
-	TypeINT      SimpleType = "intgerType"
+	TypeNO_TYPE  TypeKind = "untyped"
+	TypeCOMPOUND TypeKind = "notASimpleType"
+	TypeINT      TypeKind = "intType"
+	TypeTYPE     TypeKind = "typeType"
 )
 
 func (t TypeE) Evaluate(scope map[int]Expression) Expression {
@@ -520,37 +534,28 @@ func (t TypeE) Evaluate(scope map[int]Expression) Expression {
 }
 
 func (t TypeE) String() string {
-	if t.Simple == TypeCOMPOUND {
-		return fmt.Sprintf("TypeE{%s}", t.Compound)
+	if t.Kind == TypeCOMPOUND {
+		return fmt.Sprintf("TypeE{(%s)->(%s)}", t.Param.str(), t.Return.str())
 	}
-	return fmt.Sprintf("TypeE{%s}", t.Simple)
+	return fmt.Sprintf("TypeE{%s}", string(t.Kind))
 }
 
 func (t TypeE) pretty(tabSpace, lvl int) string {
 	//tab := strings.Repeat(" ", tabSpace)
 	//indent := strings.Repeat(tab, lvl)
 
-	if t.Compound == nil {
-		return fmt.Sprintf("%s", t.Simple)
+	if t.Kind != TypeCOMPOUND {
+		return fmt.Sprintf("%s", t.Kind)
 	}
-	return fmt.Sprintf("%s", emprettyCompoundType(t.Compound))
+	return fmt.Sprintf("(%s)->(%s)", t.Param.str(), t.Return.str())
 }
-func emprettyCompoundType(tt []TypeE) string {
-	var result string
-	for i, t := range tt {
-		if t.Compound == nil {
-			result += string(t.Simple)
-			if i < len(tt) {
-				result += "->"
-			}
-		} else {
-			result += "(" + emprettyCompoundType(t.Compound) + ")"
-			if i < len(tt) {
-				result += "->"
-			}
-		}
+
+func (t TypeE) str() string {
+	if t.Kind == TypeCOMPOUND {
+		return fmt.Sprintf("TypeE{%s->%s}", t.Param.String()[1:len(t.Param.String())-1], t.Return.String()[1:len(t.Return.String())-1])
 	}
-	return result
+	return fmt.Sprintf("TypeE{%s}", t.Kind)
+
 }
 
 func (t TypeE) Pretty(tabsSpace ...int) string {
@@ -562,26 +567,44 @@ func (t TypeE) Pretty(tabsSpace ...int) string {
 }
 
 func (t TypeE) Type() TypeE {
-	return TypeE{
-		Simple: TypeTYPE,
-	}
+	return TypeInt
 }
 
 func (t TypeE) EqualTo(T TypeE) bool {
-	if t.Simple != T.Simple {
+	if (t.Kind == "") || t.Kind == TypeNO_TYPE {
+		if T.Kind == "" || t.Kind == TypeNO_TYPE {
+			return true
+		}
+	}
+	if t.Kind != T.Kind {
 		return false
 	}
-	for i, ti := range t.Compound {
-		if !ti.EqualTo(T.Compound[i]) {
-			return false
-		}
+	if !t.Param.EqualTo(*T.Param) {
+		return false
+	}
+	if !t.Param.EqualTo(*T.Param) {
+		return false
 	}
 	return true
 }
 
 func (t TypeE) SetType(T TypeE) (Expression, error) {
-	if T.Simple == TypeTYPE {
+	if T.Kind == TypeTYPE {
 		return t, nil
 	}
 	return t, TypeErr
+}
+
+var TypeInt TypeE = TypeE{
+	Kind:   TypeINT,
+	Param:  nil,
+	Return: nil,
+}
+
+var TypeType TypeE = TypeE{
+	Kind: TypeTYPE,
+}
+
+var TypeUntyped TypeE = TypeE{
+	Kind: TypeNO_TYPE,
 }
